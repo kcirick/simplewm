@@ -1,0 +1,19 @@
+#-----------------------#
+#--- SimpleWM Config ---#
+#-----------------------#
+
+binding_file = binding
+menu_file = menu
+
+n_tags = 5
+tag_names = One;Two;Three;Four;Five
+
+border_width = 3
+
+#               focus   unfocus urgent  marked  fixed
+border_colour = #1793D0 #333333 #FF0000 #00FF00 #0000FF
+
+#             fg      bg      selected
+menu_colour = #000000 #FFFFFF #1793D0
+
+menu_font = fixed 

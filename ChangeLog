@@ -1,0 +1,63 @@
+2016-08-21
+	* Project name changed from LightWM to SimpleWM
+
+2016-08-20
+	* Makefile: clean up 
+	* WMCore: cycle_frame implementation complete
+	* WMCore: add move/resize frame functions
+	* Client: proper mapping of DOCK widows via ConfigureRequestEvent
+	* Frame: killVisibleClient() function implemented
+	* Frame: iconify function implemented
+	* binding: update binding to include new functions
+
+2016-08-17
+	* Menu: Work on aesthetics
+	* Configuration: Add selected fg and bg colour options for menus
+	* WMCore: cycle_frame cycles until key release. Draws frame outline (Incomplete - raise window at key release)
+	* Client: initial position set to under mouse
+
+2016-08-16
+	* Tag: Remove iCurClient index
+	* Tag: selectNextFrame() renamed to cycleFrame()
+	* XScreen: client_list moved from Tag class
+	* XScreen: start adding EWMH properties
+	* WMCore: adding handler to toggle fixed state
+	* Main: use string where possible
+
+2016-08-15
+	* Fix raise window issue
+	* Fix issue where right click on clients brought up root menu
+	* WMCore: adding send_to_tag function
+	* binding: adding send_to_tag function
+
+2016-08-12
+	* Makefile: use -std=c++11 flag
+	* Globals.h: Remove support for submenus in MenuItem class. Add 2 more utility functions to Main.cc
+	* Configuration: use string functions instead of char*
+	* Menu: adding more functionality
+	* WMCore: adding more handlers, make functions to work with menu
+	* binding: renamed from bindings. Remove raise map which grabs client (which is unwanted)
+	* README.md: Add words to To-do section
+	* General code clean up
+
+2016-08-11
+	* Tag: Work on window grouping, now working. switch tag function
+	* update config files (config/menu/bindings) 
+	* Some code clean up
+
+2016-08-10
+	* Tag: Adding Tag class to organize frames and clients per tag
+
+2016-08-09
+	* Initial work to rearrange frames and client organization
+
+2016-08-08
+	* ChangeLog: Adding changelog
+	* Makefile: Adding colours
+	* config: Update
+	* menu: Adding example menu
+	* Globals.hh: Add MenuItem class
+	* Configuration: Adding menu config
+	* Menu: Adding Menu class
+	* WMCore: Adding Menu initializer
+	* XScreen: Modify for menu

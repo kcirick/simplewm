@@ -1,0 +1,23 @@
+#---------------------#
+#--- SimpleWM Menu ---#
+#---------------------#
+
+ENTRY = Terminal | Exec urxvt
+ENTRY = Web Browser | Exec firefox
+ENTRY = Thunar | Exec thunar
+
+SEPARATOR
+
+ENTRY = LeafPad | Exec leafpad
+ENTRY = Gvim | Exec gvim
+
+ENTRY = LXAppearance | Exec lxappearance
+
+SEPARATOR
+
+ENTRY = Run... | Exec gmrun
+
+SEPARATOR
+
+ENTRY = Lock | Exec xscreensaver-command -lock
+ENTRY = Exit | Exit

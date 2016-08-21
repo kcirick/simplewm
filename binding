@@ -1,0 +1,43 @@
+#-------------------------#
+#--- SimpleWM bindings ---#
+#-------------------------#
+
+KEY = Mod4+q QUIT 0
+KEY = Mod4+k CLIENT kill
+KEY = Mod4+f CLIENT fix
+KEY = Mod4+i CLIENT iconify
+KEY = Mod4+m CLIENT mark
+KEY = Mod4+g CLIENT group
+KEY = Mod4+d CLIENT detach
+KEY = Mod4+Tab CLIENT cycle_frame
+KEY = Mod4+Left CLIENT previous_win
+KEY = Mod4+Right CLIENT next_win
+#--- Spawns
+KEY = Mod4+Return SPAWN urxvt
+#--- Tags
+KEY = Mod4+1 TAG select
+KEY = Mod4+2 TAG select
+KEY = Mod4+3 TAG select
+KEY = Mod4+4 TAG select
+KEY = Mod4+5 TAG select
+KEY = Mod4+Shift+1 CLIENT send_to_tag
+KEY = Mod4+Shift+2 CLIENT send_to_tag
+KEY = Mod4+Shift+3 CLIENT send_to_tag
+KEY = Mod4+Shift+4 CLIENT send_to_tag
+KEY = Mod4+Shift+5 CLIENT send_to_tag
+#--- Move/Resize
+KEY = Mod1+Left CLIENT move
+KEY = Mod1+Right CLIENT move
+KEY = Mod1+Up CLIENT move
+KEY = Mod1+Down CLIENT move
+KEY = Mod1+Shift+Left CLIENT resize
+KEY = Mod1+Shift+Right CLIENT resize
+KEY = Mod1+Shift+Up CLIENT resize
+KEY = Mod1+Shift+Down CLIENT resize
+
+
+MOUSE = Mod4+Button1 FRAME move
+MOUSE = Mod4+Button3 FRAME resize
+MOUSE = Button1 ROOT hide_menu
+MOUSE = Button3 ROOT show_menu
+
