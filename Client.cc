@@ -4,7 +4,8 @@
 #include "Client.hh"
 
 //--- Constructor and destructor -----------------------------------------
-Client::Client(XScreen* screen, Window win, Window frame) : g_xscreen(screen), window(win), parent(frame), managed(true) { 
+Client::Client(XScreen* screen, Window win, Window frame) : 
+   g_xscreen(screen), window(win), parent(frame), managed(true) { 
    say(DEBUG, "Client::Client() constructor");
    
    // Dont manage DESKTOP or DOCK type windows
@@ -22,7 +23,7 @@ Client::Client(XScreen* screen, Window win, Window frame) : g_xscreen(screen), w
    XSelectInput(g_xscreen->getDisplay(), window, PropertyChangeMask|StructureNotifyMask|FocusChangeMask);
 
    g_xscreen->initEWMHClient(window);
-   g_xscreen->setEWMHDesktop(window);
+   g_xscreen->setEWMHDesktop(window, g_xscreen->getCurrentTagIndex());
 }
 
 Client::~Client(){ }

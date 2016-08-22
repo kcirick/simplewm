@@ -190,7 +190,7 @@ void XScreen::initTags() {
 
    current_tag = 0; 
    for(int i=0; i<g_config -> getNTags(); i++)
-      g_tags.push_back(new Tag(this, g_config, current_tag));
+      g_tags.push_back(new Tag(this, g_config, i));
 }
 
 unsigned int XScreen::getMaskFromKeycode(KeyCode keycode) {
@@ -312,9 +312,9 @@ void XScreen::setEWMHClientList() {
          PropModeReplace, (unsigned char*)windows, i);
 }
 
-void XScreen::setEWMHDesktop(Window window) {
+void XScreen::setEWMHDesktop(Window window, uint tag) {
    XChangeProperty(g_display, window, g_atoms[NET_WM_DESKTOP], XA_CARDINAL, 32,
-         PropModeReplace, (unsigned char*)&current_tag, 1);
+         PropModeReplace, (unsigned char*)&tag, 1);
 }
 
 unsigned int XScreen::getWMWindowType(Window win){
@@ -364,6 +364,9 @@ void XScreen::updateAllTags(){
       else                 g_tags.at(i) -> hideTag();
    }
    updateCurrentTag();
+   
+   // To update the client list
+   setEWMHClientList();
 }
 
 void XScreen::updateCurrentTag(){
@@ -374,8 +377,12 @@ void XScreen::sendFrameToTag(Frame* frame, unsigned int target_tag){
    Tag* old_tag = g_tags.at(current_tag);
    Tag* new_tag = g_tags.at(target_tag);
 
-   old_tag -> removeFrame(frame, false);
+   old_tag -> removeFrame(frame, false, false);
    new_tag -> insertFrame(frame);
+
+   vector<Client*> clist = frame->getClientList();
+   for(uint i=0; i<clist.size(); i++)
+      setEWMHDesktop(clist.at(i)->getWindow(), target_tag);
 }
 
 void XScreen::fixFrame(Frame* frame){
@@ -383,11 +390,20 @@ void XScreen::fixFrame(Frame* frame){
    
    if(isFixed){
       for(unsigned int i=0; i<g_tags.size(); i++)
-         if(i!=current_tag) g_tags.at(i)->removeFrame(frame, false);
+         if(i!=current_tag) g_tags.at(i)->removeFrame(frame, false, false);
    } else {
       for(unsigned int i=0; i<g_tags.size(); i++)
          if(i!=current_tag) g_tags.at(i)->insertFrame(frame);
    }
 
    frame->toggleFixed();
+}
+
+void XScreen::setWmState(Window win, ulong state){
+   ulong data[2];
+   data[0] = state;
+   data[1] = None; // No icon
+
+   XChangeProperty(g_display, win, g_atoms[WM_STATE], g_atoms[WM_STATE], 32,
+         PropModeReplace, (unsigned char*) data, 2);
 }

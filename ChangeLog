@@ -1,5 +1,9 @@
 2016-08-21
 	* Project name changed from LightWM to SimpleWM
+	* WMCore: proper unmap event handling
+	* XScreen: fix removeClient function
+	* Tag: add extra argument to removeFrame() function - needs to be cleaned up
+	* Frame: remove CWEventMask from topbar property
 
 2016-08-20
 	* Makefile: clean up 

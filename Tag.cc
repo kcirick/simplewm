@@ -29,7 +29,7 @@ void Tag::addWindow(Window win){
 void Tag::updateTag(){
    if(frame_list.size()==0) return;
 
-   say(DEBUG, "===> updateTag: nframes = "+to_string(frame_list.size())+" - current = "+to_string(iCurFrame));
+   //say(DEBUG, "===> updateTag: nframes = "+to_string(frame_list.size())+" - current = "+to_string(iCurFrame));
    for(unsigned int i=0; i<frame_list.size(); i++)
       if(frame_list.at(i)->isIconified())
          XUnmapWindow(g_xscreen->getDisplay(), frame_list.at(i)->getFrameWindow());
@@ -113,7 +113,7 @@ void Tag::groupMarkedFrames(Frame* root_frame) {
       attr.background_pixmap = ParentRelative;
       attr.background_pixel  = (g_xscreen->getBorderColour(1)).pixel;
       attr.border_pixel      = (g_xscreen->getBorderColour(1)).pixel;
-      attr.event_mask        = SubstructureNotifyMask|ButtonPressMask|ButtonReleaseMask|EnterWindowMask;
+      //attr.event_mask        = SubstructureNotifyMask|ButtonPressMask|ButtonReleaseMask|EnterWindowMask;
       attr.override_redirect = True;
 
       for(unsigned int ic=0; ic<clist.size(); ic++){
@@ -128,12 +128,12 @@ void Tag::groupMarkedFrames(Frame* root_frame) {
          Window topbar = XCreateWindow(g_xscreen->getDisplay(), root_frame->getFrameWindow(),
             0, 0, 10, 10, 0,  // we don't know the size yet
             g_xscreen->getDepth(), CopyFromParent, g_xscreen->getVisual(),
-            CWOverrideRedirect|CWBorderPixel|CWBackPixmap|CWBackPixel|CWEventMask, &attr);
+            CWOverrideRedirect|CWBorderPixel|CWBackPixmap|CWBackPixel/*|CWEventMask*/, &attr);
 
          XMapWindow(g_xscreen->getDisplay(), topbar);
          root_frame->addToTopbarList(topbar);
       }
-      removeFrame(f, true);
+      removeFrame(f, false, true);
       i--;
    }
 
@@ -155,15 +155,20 @@ void Tag::detachFrame(Frame* root_frame){
    addWindow(this_window);
 }
 
-void Tag::removeFrame(Frame* frame, bool delete_frame){
+void Tag::removeFrame(Frame* frame, bool unmap_only, bool delete_frame){
    say(DEBUG, "Tag::removeFrame()");
 
    vector<Client*> clist = frame -> getClientList();
-   if(delete_frame && clist.size()>0) return;   // can't delete frame if there is client
+   //if(delete_frame && clist.size()>0) return;   // can't delete frame if there is client
 
    // remove clients from client_list
    //for(unsigned int i=0; i<clist.size(); i++)
    //   g_xscreen->removeClient(clist.at(i));
+
+   if(unmap_only){
+      XUnmapWindow(g_xscreen->getDisplay(), frame->getFrameWindow());
+      return;
+   }
 
    bool found = false;
    for(unsigned int i=0; i<frame_list.size(); i++){
@@ -184,7 +189,8 @@ void Tag::insertFrame(Frame* frame) {
    // add clients to client_list
    vector<Client*> clist = frame->getClientList();
    for(unsigned int i=0; i<clist.size(); i++)
-      g_xscreen->insertClient(clist.at(i));
+      g_xscreen->setEWMHDesktop(clist.at(i)->getWindow(), tag_id);
+      //g_xscreen->insertClient(clist.at(i));
 
    // add frame
    frame_list.push_back(frame);

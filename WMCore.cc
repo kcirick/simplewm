@@ -333,18 +333,19 @@ void WMCore::handleMapRequestEvent(XMapRequestEvent *ev) {
 void WMCore::handleUnmapEvent(XUnmapEvent *ev) {
    say(DEBUG, "handleUnmapEvent()");
 
-/*
-	Client *c = Client::findClient(ev->window);
+   Tag* tag = g_xscreen->getCurrentTag();
+	Client *c = g_xscreen->findClient(ev->window);
    if(!c) return;
-   Frame  *f = Frame::findFrame(c->getFrame());
+   Frame  *f = tag->findFrame(c->getFrame());
    if(!f) return;
 
    say(DEBUG, "Client and Frame found");
-   //if (c->getIgnoreUnmap()>0)
-   //   c->setIgnoreUnmap(c->getIgnoreUnmap()-1);
-   //else
-   f->removeClient(c, true);
-   */
+   if(!ev->send_event) return;
+
+   g_xscreen->setWmState(ev->window, WithdrawnState);
+   //uint csize = f->removeClient(c, false);
+   tag->removeFrame(f, true, false);
+   g_xscreen->updateCurrentTag();
 }
 
 void WMCore::handleDestroyWindowEvent(XDestroyWindowEvent *ev){
@@ -358,7 +359,7 @@ void WMCore::handleDestroyWindowEvent(XDestroyWindowEvent *ev){
 
    say(DEBUG, "Client and Frame found");
    uint list_size = f->removeClient(c, true);
-   if(list_size==0) tag->removeFrame(f, true);
+   if(list_size==0) tag->removeFrame(f, false, true);
    g_xscreen->updateCurrentTag();
    
 }
@@ -368,21 +369,16 @@ void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){
    Tag *tag = g_xscreen->getCurrentTag();
 	Client *c = g_xscreen->findClient(ev->window);
 
-   /*
-	XWindowChanges wc = {
-      .x = ev->x,
-	   .y = ev->y,
-	   .width = ev->width,
-	   .height = ev->height,
-	   .border_width = 0,
-	   .sibling = ev->above,
-	   .stack_mode = ev->detail };
-   */
 
 	if (c) {
       say(DEBUG, "Found Client");
       
       Frame* f = tag->findFrame(c->getFrame());
+      if(f) say(DEBUG, "Found Frame");
+      else say(DEBUG, "Didnt find frame");
+
+      //if(!f) f = new Frame(g_xscreen, g_config, ev->window); 
+
       Geometry fgeom = f->getFrameGeometry();
       uint value_mask = ev->value_mask;
       if(value_mask&CWX)      fgeom.x = ev->x;
@@ -403,10 +399,39 @@ void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){
       */
 	} 
    else{
+
+      /*
+      XWindowChanges wc;
+      wc.x              = ev->x;
+      wc.y              = ev->y;
+      wc.width          = ev->width;
+      wc.height         = ev->height;
+      wc.border_width   = ev->border_width;
+      wc.sibling        = ev->above;
+      wc.stack_mode     = ev->detail;
+      */
       //FIXME This is temporary. Better solution is needed
+      
+      XClassHint hint;
+      XGetClassHint(g_xscreen->getDisplay(), ev->window, &hint);
+      string class_str = hint.res_class ? hint.res_class : "broken";
+      string name_str = hint.res_name ? hint.res_name : "broken";
+
+      say(DEBUG, "class = "+class_str+" / name = "+name_str);
+      /*
+      for(int i=0; i<LENGTH(custom_rules); i++){
+         if(!strcmp(custom_rules[i].class_str, class_str)){
+            client->tag = find_tag(tags[custom_rules[i].tag]);
+            client->floating = custom_rules[i].floating;
+         }
+      }*/
+     
       // perhaps via rules
 		XMoveResizeWindow(g_xscreen->getDisplay(), ev->window, ev->x, ev->y, ev->width, ev->height);
-      XLowerWindow(g_xscreen->getDisplay(), ev->window);
+      if(name_str == "panel")
+         XRaiseWindow(g_xscreen->getDisplay(), ev->window);
+      else
+         XLowerWindow(g_xscreen->getDisplay(), ev->window);
       //XConfigureWindow(g_xscreen->getDisplay(), ev->window, ev->value_mask, &wc);
    }
 
@@ -436,7 +461,7 @@ void WMCore::handlePropertyEvent(XPropertyEvent *ev){
       say(DEBUG, "WM_HINTS");
    }
 
-   g_xscreen->updateCurrentTag();
+   //g_xscreen->updateCurrentTag();
 }
 
 void WMCore::handleEnterNotify(XCrossingEvent *ev){

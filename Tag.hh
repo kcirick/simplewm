@@ -20,7 +20,7 @@ class Tag {
       void updateTag();
       void showTag();
       void hideTag();
-      void removeFrame(Frame*, bool);
+      void removeFrame(Frame*, bool, bool);
       void insertFrame(Frame*);
 
       inline Frame* getCurrentFrame() { return iCurFrame<0 ? NULL : frame_list.at(iCurFrame); }

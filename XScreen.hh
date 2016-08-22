@@ -70,10 +70,11 @@ class XScreen {
       void initEWMHClient(Window);
       void setEWMHActiveWindow(Window); 
       void setEWMHClientList();
-      void setEWMHDesktop(Window);
+      void setEWMHDesktop(Window, uint);
       void setEWMHCurrentDesktop();
 
-      unsigned int getWMWindowType(Window win);
+      unsigned int getWMWindowType(Window);
+      void setWmState(Window, ulong);
 
 
       inline XColor getBorderColour(int i) { return border_colour[i]; }
@@ -94,7 +95,11 @@ class XScreen {
 
       inline void insertClient(Client* client) { client_list.push_back(client); }
       inline void removeClient(Client* client) {
-         client_list.erase(find(client_list.begin(), client_list.end(), client));
+         for(uint i=0; i<client_list.size(); i++){
+            if(client_list.at(i)==client)
+               client_list.erase(client_list.begin()+i);
+         }
+         //client_list.erase(find(client_list.begin(), client_list.end(), client));
       }
 
       void fixFrame(Frame*);

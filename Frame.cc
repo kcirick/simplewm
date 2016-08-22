@@ -11,6 +11,7 @@ Frame::Frame(XScreen* xscreen, Configuration* config, Window win) : g_xscreen(xs
    createFrame();
 
    Client* new_client = new Client(g_xscreen, win, frame);
+
    client_list.push_back(new_client); // now size = 1
    iVisibleClient = 0;
 
@@ -51,7 +52,7 @@ void Frame::createFrame(){
    Window topbar = XCreateWindow(g_xscreen->getDisplay(), frame,
       0, 0, 10, 10, 0,  // we don't know the size yet
       g_xscreen->getDepth(), CopyFromParent, g_xscreen->getVisual(),
-      CWOverrideRedirect|CWBorderPixel|CWBackPixmap|CWBackPixel|CWEventMask, &attr);
+      CWOverrideRedirect|CWBorderPixel|CWBackPixmap|CWBackPixel/*|CWEventMask*/, &attr);
    XMapWindow(g_xscreen->getDisplay(), topbar);
    
    topbar_list.push_back(topbar);   // now size = 1
@@ -188,7 +189,7 @@ void Frame::updateFrameGeometry(bool init) {
    XMoveResizeWindow(display, client_list.at(iVisibleClient)->getWindow(), border_width, border_width, cl_geom.width, cl_geom.height);
    unsigned int nclients = client_list.size();
    int topbar_width = cl_geom.width/nclients;
-   say(DEBUG, "# clients = "+to_string(nclients)+" :: topbar width = "+to_string(topbar_width));
+   //say(DEBUG, "# clients = "+to_string(nclients)+" :: topbar width = "+to_string(topbar_width));
    for(unsigned int i=0; i<nclients; i++){
       XSetWindowBackground(display, topbar_list.at(i), frame_colour.pixel);
       XMoveResizeWindow(display, topbar_list.at(i), border_width+i*topbar_width, 0, topbar_width, border_width);
@@ -236,6 +237,7 @@ unsigned int Frame::removeClient(Client *client, bool delete_client){
    bool found = false;
    for(uint i=0; i<client_list.size(); i++){
       if(client_list.at(i) == client){
+         say(DEBUG, "HERE 10 - "+to_string(i));
          found = true;
          client_list.erase(client_list.begin()+i);
          XUnmapWindow(g_xscreen->getDisplay(), topbar_list.at(i));
@@ -244,12 +246,15 @@ unsigned int Frame::removeClient(Client *client, bool delete_client){
       }
    }
    if(!found) return client_list.size();
+   say(DEBUG, "HERE 30");
 
    if(delete_client){
       g_xscreen->removeClient(client);
       delete client;
    }
-
+   say(DEBUG, "HERE 40");
+   g_xscreen->setEWMHClientList();
+   say(DEBUG, "HERE 50");
    return client_list.size();
 }
 
@@ -266,7 +271,6 @@ void Frame::killVisibleClient(bool force_kill){
    }
 
    if(found){
-      //send_xmessage(c->getWindow(), g_atoms[WM_PROTOCOLS], g_atoms[WM_DELETE_WINDOW]);
       XEvent ev;
       ev.type = ClientMessage;
       ev.xclient.window = c->getWindow();
