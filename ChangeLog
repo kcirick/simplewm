@@ -1,3 +1,10 @@
+2016-09-08
+	* Tag version 0.1
+	* WMCore: Improve event efficiency
+	* Configuration: Adding MENU context for keybinds
+	* Frame, Tag: Reorder the order created
+	* Client: sane placement of the new window
+
 2016-08-21
 	* Project name changed from LightWM to SimpleWM
 	* WMCore: proper unmap event handling

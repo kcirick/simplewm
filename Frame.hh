@@ -3,7 +3,7 @@
 
 class Frame {
    public:
-      Frame(XScreen*, Configuration*, Window win);
+      Frame(XScreen*, Client*);
       virtual ~Frame();
 
       inline bool isIconified()  { return iconified; }
@@ -45,7 +45,6 @@ class Frame {
    
    private:
       XScreen* g_xscreen;
-      Configuration* g_config;
 
       Window frame;
       Geometry geom;
@@ -58,8 +57,8 @@ class Frame {
       bool fixed;
 
       //--- functions -----
-      void createFrame();
-      void updateFrameGeometry(bool);
+      void createFrame(Client*);
+      void updateFrameGeometry();
 
       void send_config();
 };

@@ -5,17 +5,9 @@
 #include "Frame.hh"
 
 //--- Constructor and destructor -----------------------------------------
-Frame::Frame(XScreen* xscreen, Configuration* config, Window win) : g_xscreen(xscreen), g_config(config) { 
+Frame::Frame(XScreen* xscreen, Client* new_client) : g_xscreen(xscreen) { 
    say(DEBUG, "Frame::Frame() constructor");
-
-   createFrame();
-
-   Client* new_client = new Client(g_xscreen, win, frame);
-
-   client_list.push_back(new_client); // now size = 1
-   iVisibleClient = 0;
-
-   updateFrameGeometry(true);
+   createFrame(new_client);
 }
 
 Frame::~Frame() { 
@@ -25,7 +17,7 @@ Frame::~Frame() {
 }
 
 //------------------------------------------------------------------------
-void Frame::createFrame(){
+void Frame::createFrame(Client* client){
    client_list = vector<Client*>();
    topbar_list = vector<Window>();
 
@@ -34,34 +26,45 @@ void Frame::createFrame(){
    urgent         = false;
    fixed          = false;
 
+   int border_width = g_xscreen->getBorderWidth();
+   unsigned int frame_pixel = (g_xscreen->getBorderColour(UNFOCUSED)).pixel;
+
    XSetWindowAttributes attr;
-   attr.background_pixmap = ParentRelative;
-   attr.background_pixel  = (g_xscreen->getBorderColour(UNFOCUSED)).pixel;
-   attr.border_pixel      = (g_xscreen->getBorderColour(UNFOCUSED)).pixel;
-   attr.event_mask        = SubstructureRedirectMask|SubstructureNotifyMask|ButtonPressMask|ButtonReleaseMask|EnterWindowMask;
+   attr.background_pixel  = frame_pixel;
+   attr.border_pixel      = frame_pixel;
+   attr.event_mask        = SubstructureRedirectMask|SubstructureNotifyMask|
+            ButtonPressMask|ButtonReleaseMask|ButtonMotionMask|EnterWindowMask;
    attr.override_redirect = True;
+
+   geom = client->getGeometry();
+   geom.x -= border_width;
+   geom.y -= border_width;
+   geom.width += 2*border_width;
+   geom.height += 2*border_width;
 
    // Frame
    frame = XCreateWindow(g_xscreen->getDisplay(), g_xscreen->getRoot(), 
-      0, 0, 100, 100, 0,   // we don't know the size yet
+      geom.x, geom.y, geom.width, geom.height, 0, 
       g_xscreen->getDepth(), InputOutput, g_xscreen->getVisual(), 
-      CWOverrideRedirect|CWBorderPixel|CWBackPixmap|CWBackPixel|CWEventMask, &attr);
+      CWOverrideRedirect|CWBorderPixel|CWBackPixel|CWEventMask, &attr);
    XMapWindow(g_xscreen->getDisplay(), frame);
 
    // Top bar
-   Window topbar = XCreateWindow(g_xscreen->getDisplay(), frame,
-      0, 0, 10, 10, 0,  // we don't know the size yet
-      g_xscreen->getDepth(), CopyFromParent, g_xscreen->getVisual(),
-      CWOverrideRedirect|CWBorderPixel|CWBackPixmap|CWBackPixel/*|CWEventMask*/, &attr);
+   Window topbar = XCreateSimpleWindow(g_xscreen->getDisplay(), frame,
+      geom.x, geom.y, geom.width, border_width, 0, frame_pixel, frame_pixel);
    XMapWindow(g_xscreen->getDisplay(), topbar);
    
    topbar_list.push_back(topbar);   // now size = 1
+
+   // Add client to the list
+   client_list.push_back(client); // now size = 1
+   iVisibleClient = 0;
 }
 
 void Frame::refreshFrame(bool current){
    Display *display = g_xscreen->getDisplay();
 
-   updateFrameGeometry(false);
+   updateFrameGeometry();
 
    if(current && !iconified) {
       if(!(marked || fixed)){
@@ -160,25 +163,16 @@ void Frame::dragResizeFrame(){
 	}
 }
 
-void Frame::updateFrameGeometry(bool init) {
-
+void Frame::updateFrameGeometry() {
    Display *display = g_xscreen->getDisplay();
-   int border_width = g_config->getBorderWidth();
+   int border_width = g_xscreen->getBorderWidth();
 
    Geometry cl_geom = client_list.at(iVisibleClient)->getGeometry();
-   if(init) {
-      geom = cl_geom;
-      geom.x -= border_width;
-      geom.y -= border_width;
-      geom.width += 2*border_width;
-      geom.height += 2*border_width;
-   } else {
-      cl_geom.x = geom.x + border_width;
-      cl_geom.y = geom.y + border_width;
-      cl_geom.width = geom.width - 2*border_width;
-      cl_geom.height = geom.height - 2*border_width;
-      client_list.at(iVisibleClient)->setGeometry(cl_geom);
-   }
+   cl_geom.x = geom.x + border_width;
+   cl_geom.y = geom.y + border_width;
+   cl_geom.width = geom.width - 2*border_width;
+   cl_geom.height = geom.height - 2*border_width;
+   client_list.at(iVisibleClient)->setGeometry(cl_geom);
 
    XColor frame_colour = g_xscreen->getBorderColour(UNFOCUSED);
    if(marked)  frame_colour = g_xscreen->getBorderColour(MARKED);
@@ -237,7 +231,6 @@ unsigned int Frame::removeClient(Client *client, bool delete_client){
    bool found = false;
    for(uint i=0; i<client_list.size(); i++){
       if(client_list.at(i) == client){
-         say(DEBUG, "HERE 10 - "+to_string(i));
          found = true;
          client_list.erase(client_list.begin()+i);
          XUnmapWindow(g_xscreen->getDisplay(), topbar_list.at(i));
@@ -246,15 +239,12 @@ unsigned int Frame::removeClient(Client *client, bool delete_client){
       }
    }
    if(!found) return client_list.size();
-   say(DEBUG, "HERE 30");
 
    if(delete_client){
       g_xscreen->removeClient(client);
       delete client;
    }
-   say(DEBUG, "HERE 40");
    g_xscreen->setEWMHClientList();
-   say(DEBUG, "HERE 50");
    return client_list.size();
 }
 

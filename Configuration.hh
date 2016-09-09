@@ -12,7 +12,13 @@ class Configuration {
       
       inline int getNTags() const { return n_tags; }
       inline string getTagName(unsigned int i) { return tag_names.at(i); }
-      inline string getTagNamesAll() {return tag_names_all; }
+      inline string getTagNamesAll() {
+         string tag_names_all = accumulate(tag_names.begin(), tag_names.end(), string{},
+                                    [](const string& a, string b) {
+                                        return a.empty() ? b : a + ' ' + b;
+                                    });
+         return tag_names_all;
+      }
 
       inline string getBindingFileName() { return binding_file; }
       inline string getMenuFileName() { return menu_file; }
@@ -29,7 +35,6 @@ class Configuration {
    private:
       int n_tags;
       vector<string> tag_names;
-      string tag_names_all;
       int border_width;
 
       string border_colour[NBORDERCOL];

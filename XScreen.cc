@@ -61,9 +61,7 @@ const char* atomnames[NATOMS] = {
 };
 
 const unsigned long ROOT_EVENT_MASK = 
-   StructureNotifyMask|PropertyChangeMask|
-   SubstructureNotifyMask|SubstructureRedirectMask|
-   ColormapChangeMask|FocusChangeMask|EnterWindowMask|
+   SubstructureNotifyMask|SubstructureRedirectMask|/*PropertyChangeMask|EnterWindowMask|*/
    ButtonPressMask|ButtonReleaseMask|ButtonMotionMask;
 
 int handle_xerror(Display *display, XErrorEvent *e) {
@@ -103,15 +101,8 @@ XScreen::XScreen(Display *display, Configuration *config) : g_display(display), 
    g_screen_geom.height = HeightOfScreen(ScreenOfDisplay(g_display, g_screen));
 
    /// Set up Root input layer
-   XSetWindowAttributes attr;
-   attr.event_mask        = ButtonPressMask|ButtonReleaseMask;
-   attr.override_redirect = True;
-
-   g_root_input = XCreateWindow(g_display, g_root, 
-      g_screen_geom.x, g_screen_geom.y, g_screen_geom.width, g_screen_geom.height, 0,
-      g_depth, InputOnly, g_visual, CWOverrideRedirect|CWEventMask, &attr);
-
-   XMapWindow(g_display, g_root_input);
+   g_root_input = XCreateSimpleWindow(g_display, g_root, 
+      g_screen_geom.x, g_screen_geom.y, g_screen_geom.width, g_screen_geom.height, 0, 0, 0);
    ///
 
    default_curs   = XCreateFontCursor(g_display, XC_left_ptr);
@@ -150,7 +141,12 @@ XScreen::XScreen(Display *display, Configuration *config) : g_display(display), 
 	gv.line_width = 2;
    invert_gc = XCreateGC(g_display, g_root, GCFunction|GCSubwindowMode|GCLineWidth, &gv);
 
+   
    XSelectInput(g_display, g_root, ROOT_EVENT_MASK);
+   //XSetWindowAttributes attr;
+   //attr.event_mask = ROOT_EVENT_MASK;
+   //XChangeWindowAttributes(g_display, g_root, CWEventMask, &attr);
+   
    XRRSelectInput(g_display, g_root, RRScreenChangeNotifyMask);
 
    //reset client_list

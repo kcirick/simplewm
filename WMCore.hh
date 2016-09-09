@@ -6,6 +6,8 @@ class WMCore {
       WMCore() : running(true) { };
       ~WMCore() { };
 
+      void test();
+
       void read_config(string);
       void setup();
       void event_loop();
@@ -35,7 +37,6 @@ class WMCore {
       void handleButtonPressEvent(XButtonEvent *);
       void handleButtonReleaseEvent(XButtonEvent *);
       void handleEnterNotify(XCrossingEvent *);
-      void handleLeaveNotify(XCrossingEvent *);
       void handleMotionEvent(XMotionEvent *);
       void handleMappingEvent(XMappingEvent *);
       void handleExposeEvent(XExposeEvent *);

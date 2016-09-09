@@ -3,7 +3,7 @@
 
 class Client {
    public:
-      Client(XScreen*, Window, Window);
+      Client(XScreen*, Window);
       virtual ~Client();
 
       inline Geometry getGeometry() { return geom; }
@@ -13,9 +13,8 @@ class Client {
       inline bool isManaged() { return managed; }
 
       inline void setGeometry(Geometry this_geom) { geom = this_geom; }
-      inline void setFrame(Window frame) { parent = frame; }
 
-      void reparent();
+      void reparent(Window);
 
       //bool isTransient() const { return transient_for_window != None; }
       //Client *getTransientForClient() const { return translient_for; }

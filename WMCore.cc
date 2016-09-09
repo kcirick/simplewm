@@ -12,12 +12,18 @@
 #include "Menu.hh"
 #include "WMCore.hh"
 
+#define MAX(a,b) ((a)>(b) ? (a) : (b))
+
 //------------------------------------------------------------------------
 void WMCore::read_config(string config_file) {
    g_config = new Configuration();
    g_config -> loadConfig(config_file);
    g_config -> loadBinding(g_config->getBindingFileName());
    g_config -> loadMenu(g_config->getMenuFileName());
+}
+
+void WMCore::test() {
+   // Reserved for testing/debugging purposes
 }
 
 void WMCore::setup() {
@@ -28,6 +34,7 @@ void WMCore::setup() {
 
    g_xscreen  = new XScreen(g_display, g_config);
 
+   //--- set up root menu
    g_menu = new Menu(g_xscreen, g_config);
    g_menu -> createMenu();
 
@@ -37,15 +44,15 @@ void WMCore::setup() {
 
    XDefineCursor(g_display, g_xscreen->getRoot(), g_xscreen->default_curs);
 
-   // set up keys and buttons
+   //--- set up keys and buttons
    g_xscreen->grabKeys(g_xscreen->getRoot());
    g_xscreen->grabButtons(g_xscreen->getRootInput(), CONTEXT_ROOT);
 
-   // set up tags
+   //--- set up tags
    g_xscreen->initTags();
    
-   // scan for existing windows
-   scanWindows();
+   //--- scan for existing windows
+   //scanWindows();
 
    g_xscreen -> initEWMHProperties();
    g_xscreen -> setEWMHActiveWindow(None);
@@ -124,8 +131,6 @@ void WMCore::event_loop() {
                handleMotionEvent(&ev.xmotion);                       break;
             case EnterNotify:
                handleEnterNotify(&ev.xcrossing);                     break;
-            case LeaveNotify:
-               handleLeaveNotify(&ev.xcrossing);                     break;
             default:
                //if(XScreen::hasRandr()){
                //   say(DEBUG, "XRANDR event"); 
@@ -141,6 +146,7 @@ void WMCore::handleKeyEvent(XKeyEvent *ev) {
    say(DEBUG, "handleKeyEvent()");
    KeySym keysym = XkbKeycodeToKeysym(g_xscreen->getDisplay(), ev->keycode, 0, 0);
 
+   // Check for menu window first
    if(ev->window == g_menu->getMenuWindow()){
       if(keysym == XK_Up){
          g_menu->selectRow(g_menu->getSelectedRow()-1); 
@@ -157,14 +163,13 @@ void WMCore::handleKeyEvent(XKeyEvent *ev) {
       }
       return;
    }
+
    vector<KeyMap*> keymap = g_config->getKeymap();
 
    g_xscreen->stripStateModifiers(&ev->state);
    for(uint i=0; i<keymap.size(); i++)
       if(keysym == keymap.at(i)->keysym && keymap.at(i)->mask == ev->state)
          key_function(keymap.at(i)->keyfn, keymap.at(i)->argument, keysym);
-
-   say(DEBUG, "handleKeyEvent() finish");
 }
 
 void WMCore::key_function(int keyfn, string argument, KeySym key){
@@ -217,7 +222,6 @@ void WMCore::key_function(int keyfn, string argument, KeySym key){
          else if(key==XK_Down)      g.height += height_inc;
          frame->setFrameGeometry(g);
       }
-
       if(argument=="send_to_tag"){
          g_xscreen->sendFrameToTag(frame, key-XK_1);
          // All tags need to be updated
@@ -225,6 +229,12 @@ void WMCore::key_function(int keyfn, string argument, KeySym key){
          return;
       }
       g_xscreen->updateCurrentTag();
+   }
+
+   //--- MENU -----
+   if(keyfn==MENU) {
+      if(argument=="show")    g_menu->showMenu();
+      if(argument=="hide")    g_menu->hideMenu();
    }
 }
 
@@ -252,14 +262,6 @@ void WMCore::handleButtonPressEvent(XButtonEvent *ev){
             mousemap.at(i)->mask == ev->state && mousemap.at(i)->button == ev->button)
             mouse_function(frame, mousemap.at(i)->argument, CONTEXT_FRAME);
 
-   }
-   else if(ev->window == g_xscreen->getRootInput()){
-      // CONTEXT_ROOT
-      say(DEBUG, "CONTEXT_ROOT");
-      for(uint i=0; i<mousemap.size(); i++)
-         if(mousemap.at(i)->context==CONTEXT_ROOT && 
-            mousemap.at(i)->mask == ev->state && mousemap.at(i)->button == ev->button)
-            mouse_function(NULL, mousemap.at(i)->argument, CONTEXT_ROOT);
    }
    else if(ev->window == g_menu->getMenuWindow()){
       say(DEBUG, "MENU WINDOW");
@@ -310,24 +312,11 @@ void WMCore::handleMotionEvent(XMotionEvent *ev){
 void WMCore::handleMapRequestEvent(XMapRequestEvent *ev) {
    say(DEBUG, "handleMapRequestEvent()");
 
-   //Client* client = new Client(ev->window);
-   //new Frame(g_xscreen, g_config, ev->window);
-
+   //XMapWindow(g_xscreen->getDisplay(), ev->window);
+   
    Tag* tag = g_xscreen->getCurrentTag();
    tag->addWindow(ev->window);
    g_xscreen->updateCurrentTag();
-   /*
-   WindowObject* wo = WindowObject::findWO(ev->window);
-
-   if(wo) wo->handleMapRequest(ev);
-   else {
-      XWindowAttributes attr;
-      XGetWindowAttributes(XScreen::getDisplay(), ev->window, &attr);
-      if(!attr.override_redirect){
-         Client *client = new Client(ev->window, true);
-         if(!client->isAlive()) delete client;
-      }
-   }*/
 }
 
 void WMCore::handleUnmapEvent(XUnmapEvent *ev) {
@@ -357,7 +346,7 @@ void WMCore::handleDestroyWindowEvent(XDestroyWindowEvent *ev){
    Frame* f = tag->findFrame(c->getFrame());
    if(!f) return;
 
-   say(DEBUG, "Client and Frame found");
+   say(DEBUG, "---> Client and Frame found");
    uint list_size = f->removeClient(c, true);
    if(list_size==0) tag->removeFrame(f, false, true);
    g_xscreen->updateCurrentTag();
@@ -369,16 +358,10 @@ void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){
    Tag *tag = g_xscreen->getCurrentTag();
 	Client *c = g_xscreen->findClient(ev->window);
 
-
 	if (c) {
-      say(DEBUG, "Found Client");
+      say(DEBUG, "---> Found Client");
       
       Frame* f = tag->findFrame(c->getFrame());
-      if(f) say(DEBUG, "Found Frame");
-      else say(DEBUG, "Didnt find frame");
-
-      //if(!f) f = new Frame(g_xscreen, g_config, ev->window); 
-
       Geometry fgeom = f->getFrameGeometry();
       uint value_mask = ev->value_mask;
       if(value_mask&CWX)      fgeom.x = ev->x;
@@ -400,7 +383,7 @@ void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){
 	} 
    else{
 
-      /*
+      /* 
       XWindowChanges wc;
       wc.x              = ev->x;
       wc.y              = ev->y;
@@ -409,15 +392,24 @@ void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){
       wc.border_width   = ev->border_width;
       wc.sibling        = ev->above;
       wc.stack_mode     = ev->detail;
-      */
-      //FIXME This is temporary. Better solution is needed
-      
-      XClassHint hint;
-      XGetClassHint(g_xscreen->getDisplay(), ev->window, &hint);
-      string class_str = hint.res_class ? hint.res_class : "broken";
-      string name_str = hint.res_name ? hint.res_name : "broken";
 
-      say(DEBUG, "class = "+class_str+" / name = "+name_str);
+      XConfigureWindow(g_xscreen->getDisplay(), ev->window, ev->value_mask, &wc);
+      */
+      
+      //FIXME This is temporary. Better solution is needed
+      XClassHint hint;
+      if(!XGetClassHint(g_xscreen->getDisplay(), ev->window, &hint)){
+         XLowerWindow(g_xscreen->getDisplay(), ev->window);
+         return;
+      }
+
+
+      string class_str = hint.res_class ? string(hint.res_class) : "broken";
+      string name_str = hint.res_name ? string(hint.res_name) : "broken";
+      XFree(hint.res_class);
+      XFree(hint.res_name);
+
+      say(DEBUG, "---> class = "+class_str+" / name = "+name_str);
       /*
       for(int i=0; i<LENGTH(custom_rules); i++){
          if(!strcmp(custom_rules[i].class_str, class_str)){
@@ -428,11 +420,15 @@ void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){
      
       // perhaps via rules
 		XMoveResizeWindow(g_xscreen->getDisplay(), ev->window, ev->x, ev->y, ev->width, ev->height);
-      if(name_str == "panel")
-         XRaiseWindow(g_xscreen->getDisplay(), ev->window);
-      else
-         XLowerWindow(g_xscreen->getDisplay(), ev->window);
-      //XConfigureWindow(g_xscreen->getDisplay(), ev->window, ev->value_mask, &wc);
+      if(name_str == "panel"){
+
+         Atom stateAbove[1];
+         stateAbove[0] = g_xscreen->getAtom(STATE_ABOVE);
+         XChangeProperty(g_xscreen->getDisplay(), ev->window, g_xscreen->getAtom(STATE), XA_ATOM, 32, 
+            PropModeReplace, (unsigned char *) &stateAbove, 1);
+
+         //XRaiseWindow(g_xscreen->getDisplay(), ev->window);
+      }
    }
 
    g_xscreen->updateCurrentTag();
@@ -460,8 +456,6 @@ void WMCore::handlePropertyEvent(XPropertyEvent *ev){
    else if(ev->atom == g_xscreen->getAtom(WM_HINTS)){
       say(DEBUG, "WM_HINTS");
    }
-
-   //g_xscreen->updateCurrentTag();
 }
 
 void WMCore::handleEnterNotify(XCrossingEvent *ev){
@@ -481,10 +475,6 @@ void WMCore::handleEnterNotify(XCrossingEvent *ev){
       g_xscreen->updateCurrentTag();
       g_xscreen -> setEWMHActiveWindow(c->getWindow());
    }
-}
-
-void WMCore::handleLeaveNotify(XCrossingEvent *ev){
-   say(DEBUG, "handleLeaveNotify()");
 }
 
 void WMCore::handleMappingEvent(XMappingEvent *ev){

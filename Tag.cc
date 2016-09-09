@@ -10,18 +10,21 @@
 
 //------------------------------------------------------------------------
 void Tag::addWindow(Window win){
-   Frame* frame = new Frame(g_xscreen, g_config, win);
-   Client* client = frame->getClientVisible();
-   g_xscreen->insertClient(client);
-   
+   say(DEBUG, "Tag::addWindow()");
+
+   Client* client = new Client(g_xscreen, win);
    if(!client->isManaged()){
-      frame->removeClient(client, true);
-      delete frame;
+      delete client;
       return;
    }
 
+   g_xscreen->insertClient(client);
+   
+   Frame* frame = new Frame(g_xscreen, client);
    frame_list.push_back(frame);
    iCurFrame = frame_list.size()-1;
+
+   client->reparent(frame->getFrameWindow());
 
    g_xscreen->setEWMHClientList();
 }
@@ -64,6 +67,7 @@ void Tag::cycleFrame(){
 		XMaskEvent(g_xscreen->getDisplay(), KeyPressMask|KeyReleaseMask, &ev);
       KeySym keysym = XkbKeycodeToKeysym(g_xscreen->getDisplay(), ev.xkey.keycode, 0, 0);
       drawOutline(g_xscreen, current_frame->getFrameGeometry());
+
 		switch (ev.type) {
 			case KeyPress:
             if(iCurFrame<(int)list_size-1)   iCurFrame++;
@@ -108,27 +112,17 @@ void Tag::groupMarkedFrames(Frame* root_frame) {
 
       vector<Client*> clist = f->getClientList();
 
-      // topbar attributes
-      XSetWindowAttributes attr;
-      attr.background_pixmap = ParentRelative;
-      attr.background_pixel  = (g_xscreen->getBorderColour(1)).pixel;
-      attr.border_pixel      = (g_xscreen->getBorderColour(1)).pixel;
-      //attr.event_mask        = SubstructureNotifyMask|ButtonPressMask|ButtonReleaseMask|EnterWindowMask;
-      attr.override_redirect = True;
-
       for(unsigned int ic=0; ic<clist.size(); ic++){
          Client* c = clist.at(ic);
-         c->setFrame(root_frame->getFrameWindow());
-         c->reparent();
+         c->reparent(root_frame->getFrameWindow());
          root_frame->addToClientList(c);
 
          f->removeClient(c, false);
 
          // add top bar for each client added
-         Window topbar = XCreateWindow(g_xscreen->getDisplay(), root_frame->getFrameWindow(),
+         Window topbar = XCreateSimpleWindow(g_xscreen->getDisplay(), root_frame->getFrameWindow(),
             0, 0, 10, 10, 0,  // we don't know the size yet
-            g_xscreen->getDepth(), CopyFromParent, g_xscreen->getVisual(),
-            CWOverrideRedirect|CWBorderPixel|CWBackPixmap|CWBackPixel/*|CWEventMask*/, &attr);
+            (g_xscreen->getBorderColour(UNFOCUSED)).pixel, (g_xscreen->getBorderColour(UNFOCUSED)).pixel);
 
          XMapWindow(g_xscreen->getDisplay(), topbar);
          root_frame->addToTopbarList(topbar);
@@ -194,5 +188,5 @@ void Tag::insertFrame(Frame* frame) {
 
    // add frame
    frame_list.push_back(frame);
-   iCurFrame = (int)frame_list.size()-1;
+   //iCurFrame = (int)frame_list.size()-1;
 }

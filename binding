@@ -2,6 +2,8 @@
 #--- SimpleWM bindings ---#
 #-------------------------#
 
+# Key bindings
+#--------------
 KEY = Mod4+q QUIT 0
 KEY = Mod4+k CLIENT kill
 KEY = Mod4+f CLIENT fix
@@ -12,6 +14,7 @@ KEY = Mod4+d CLIENT detach
 KEY = Mod4+Tab CLIENT cycle_frame
 KEY = Mod4+Left CLIENT previous_win
 KEY = Mod4+Right CLIENT next_win
+KEY = Mod4+space MENU show
 #--- Spawns
 KEY = Mod4+Return SPAWN urxvt
 #--- Tags
@@ -36,6 +39,8 @@ KEY = Mod1+Shift+Up CLIENT resize
 KEY = Mod1+Shift+Down CLIENT resize
 
 
+# Mouse bindings
+#----------------
 MOUSE = Mod4+Button1 FRAME move
 MOUSE = Mod4+Button3 FRAME resize
 MOUSE = Button1 ROOT hide_menu

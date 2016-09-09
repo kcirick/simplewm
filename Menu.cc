@@ -4,7 +4,7 @@
 #include "Menu.hh"
 
 const unsigned long MENU_MASK =  ButtonPressMask|ButtonReleaseMask|
-	EnterWindowMask|LeaveWindowMask|PointerMotionMask|ButtonMotionMask|
+	EnterWindowMask|PointerMotionMask|ButtonMotionMask|
 	ExposureMask|StructureNotifyMask|KeyPressMask;
 
 int max(int value1, int value2){

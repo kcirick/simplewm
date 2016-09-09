@@ -16,8 +16,10 @@
 
 ## Version Log
 
-  - 0.1 (Work in progress)
-   - Getting the base WM
+  - 0.2 (Work in progress)
+   - Goal: Code clean up and maximize efficiency
+  - 0.1 (2016-09-08) (download .zip)
+   - Goal: Getting the base WM
 
 ## To do / Known issues:
 

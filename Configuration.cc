@@ -53,7 +53,6 @@ void Configuration::loadConfig(string filename){
                menu_colour[i] = getToken(value, ' ');
          }
          if(id == "tag_names") {
-            tag_names_all = value;
             for(int i=0; i<n_tags; i++)
                tag_names.push_back(getToken(value, ';'));
          }
@@ -109,6 +108,7 @@ void Configuration::loadBinding(string filename){
             else if(function == "TAG")    this_fn = TAG;
             else if(function == "SPAWN")  this_fn = SPAWN;
             else if(function == "CLIENT") this_fn = CLIENT;
+            else if(function == "MENU")   this_fn = MENU;
             
             key_bindings.push_back(new KeyMap(mod, keysym, this_fn, string(args)));
          } // end KEY

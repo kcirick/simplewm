@@ -121,7 +121,7 @@ enum AtomName {
    NATOMS
 };
 
-enum KeyFunctions { SPAWN, QUIT, TAG, CLIENT, NFUNC };
+enum KeyFunctions { SPAWN, QUIT, TAG, CLIENT, MENU, NFUNC };
 
 enum MouseContext { CONTEXT_ROOT, CONTEXT_FRAME, NCONTEXT };
 enum MenuType { ENTRY, SEPARATOR, NMENUTYPE };

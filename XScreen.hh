@@ -51,6 +51,8 @@ class XScreen {
       inline unsigned int getWidth() { return g_screen_geom.width; }
       inline unsigned int getHeight() { return g_screen_geom.height; }
 
+      inline unsigned int getBorderWidth() { return g_config->getBorderWidth(); }
+
       inline void setInputFocus(Window w) {
          XSetInputFocus(g_display, w, RevertToPointerRoot, CurrentTime);
       }
