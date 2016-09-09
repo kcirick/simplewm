@@ -18,7 +18,7 @@
 
   - 0.2 (Work in progress)
    - Goal: Code clean up and maximize efficiency
-  - 0.1 (2016-09-08) (download .zip)
+  - 0.1 (2016-09-08) (<a href="https://github.com/kcirick/simplewm/archive/v0.1.zip">download .zip</a>)
    - Goal: Getting the base WM
 
 ## To do / Known issues:
