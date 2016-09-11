@@ -59,17 +59,6 @@ class MouseMap {
       string argument;
 };
 
-class MenuItem {
-   public:
-      MenuItem(unsigned int _type, string _label, string _command) : 
-         menu_type(_type), label(_label), command(_command) { }
-      ~MenuItem() { }
-
-      unsigned int menu_type;
-      string label;
-      string command;
-};
-
 //--- enums -----
 enum MessageType { DEBUG, INFO, WARNING, ERROR, NMSG };
 
@@ -121,13 +110,11 @@ enum AtomName {
    NATOMS
 };
 
-enum KeyFunctions { SPAWN, QUIT, TAG, CLIENT, MENU, NFUNC };
+enum KeyFunctions { SPAWN, QUIT, TAG, CLIENT, NFUNC };
 
 enum MouseContext { CONTEXT_ROOT, CONTEXT_FRAME, NCONTEXT };
-enum MenuType { ENTRY, SEPARATOR, NMENUTYPE };
 
 enum BorderColours { FOCUSED, UNFOCUSED, URGENT, MARKED, FIXED, NBORDERCOL };
-enum MenuColours { FG, BG, SEL_FG, SEL_BG, NMENUCOL };
 
 //--- functions in Main.cc -----
 void say(int, string);

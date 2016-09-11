@@ -62,7 +62,7 @@ const char* atomnames[NATOMS] = {
 
 const unsigned long ROOT_EVENT_MASK = 
    SubstructureNotifyMask|SubstructureRedirectMask|/*PropertyChangeMask|EnterWindowMask|*/
-   ButtonPressMask|ButtonReleaseMask|ButtonMotionMask;
+   ButtonPressMask/*|ButtonReleaseMask|ButtonMotionMask*/;
 
 int handle_xerror(Display *display, XErrorEvent *e) {
    xerrors_count++;
@@ -114,10 +114,6 @@ XScreen::XScreen(Display *display, Configuration *config) : g_display(display), 
       string colour_name = g_config->getBorderColour(i);
       XAllocNamedColor(g_display, g_colormap, colour_name.c_str(), &border_colour[i], &cdummy);
    }
-   for(int i=0; i<NMENUCOL; i++){
-      string colour_name = g_config->getMenuColour(i);
-      XAllocNamedColor(g_display, g_colormap, colour_name.c_str(), &menu_colour[i], &cdummy);
-   }
 
    //--- Init EWMH atoms -----
    if(! XInternAtoms(g_display, const_cast<char**>(atomnames), NATOMS, 0, g_atoms))
@@ -138,15 +134,10 @@ XScreen::XScreen(Display *display, Configuration *config) : g_display(display), 
 	XGCValues gv; 
    gv.function = GXinvert;
 	gv.subwindow_mode = IncludeInferiors;
-	gv.line_width = 2;
+	gv.line_width = g_config->getBorderWidth();
    invert_gc = XCreateGC(g_display, g_root, GCFunction|GCSubwindowMode|GCLineWidth, &gv);
 
-   
    XSelectInput(g_display, g_root, ROOT_EVENT_MASK);
-   //XSetWindowAttributes attr;
-   //attr.event_mask = ROOT_EVENT_MASK;
-   //XChangeWindowAttributes(g_display, g_root, CWEventMask, &attr);
-   
    XRRSelectInput(g_display, g_root, RRScreenChangeNotifyMask);
 
    //reset client_list
@@ -300,7 +291,7 @@ void XScreen::setEWMHActiveWindow(Window win) {
 void XScreen::setEWMHClientList() {
    Window windows[WINCOUNT_MAX];
    int i=0;
-   say(DEBUG, "nclients = "+to_string(client_list.size()));
+   say(DEBUG, "setEWMHClientList: nclients = "+to_string(client_list.size()));
    for(i=0; i<(int)client_list.size(); i++)
       windows[i] = client_list.at(i)->getWindow();
 
@@ -382,6 +373,8 @@ void XScreen::sendFrameToTag(Frame* frame, unsigned int target_tag){
 }
 
 void XScreen::fixFrame(Frame* frame){
+   say(DEBUG, "XScreen::fixFrame()");
+   if(!frame) return;
    bool isFixed = frame->isFixed();
    
    if(isFixed){
@@ -391,6 +384,11 @@ void XScreen::fixFrame(Frame* frame){
       for(unsigned int i=0; i<g_tags.size(); i++)
          if(i!=current_tag) g_tags.at(i)->insertFrame(frame);
    }
+
+   // Update EWMH
+   vector<Client*> clist = frame->getClientList();
+   for(unsigned int i=0; i<clist.size(); i++)
+      setEWMHDesktop(clist.at(i)->getWindow(), current_tag);
 
    frame->toggleFixed();
 }

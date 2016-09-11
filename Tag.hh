@@ -35,7 +35,6 @@ class Tag {
       void detachFrame(Frame*);
 
    private:
-
       XScreen* g_xscreen;
       Configuration* g_config;
 
@@ -43,7 +42,6 @@ class Tag {
       int iCurFrame;
 
       vector<Frame*> frame_list;
-      //vector<Client*> client_list;
 };
 
 

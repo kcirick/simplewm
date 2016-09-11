@@ -14,7 +14,6 @@ KEY = Mod4+d CLIENT detach
 KEY = Mod4+Tab CLIENT cycle_frame
 KEY = Mod4+Left CLIENT previous_win
 KEY = Mod4+Right CLIENT next_win
-KEY = Mod4+space MENU show
 #--- Spawns
 KEY = Mod4+Return SPAWN urxvt
 #--- Tags
@@ -43,6 +42,5 @@ KEY = Mod1+Shift+Down CLIENT resize
 #----------------
 MOUSE = Mod4+Button1 FRAME move
 MOUSE = Mod4+Button3 FRAME resize
-MOUSE = Button1 ROOT hide_menu
-MOUSE = Button3 ROOT show_menu
+MOUSE = Button1 ROOT test
 

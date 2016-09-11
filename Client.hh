@@ -6,12 +6,10 @@ class Client {
       Client(XScreen*, Window);
       virtual ~Client();
 
-      inline Geometry getGeometry() { return geom; }
       inline Window getWindow()     { return window; }
       inline Window getFrame()      { return parent; }
 
-      inline bool isManaged() { return managed; }
-
+      inline Geometry getGeometry() { return geom; }
       inline void setGeometry(Geometry this_geom) { geom = this_geom; }
 
       void reparent(Window);
@@ -27,8 +25,6 @@ class Client {
       Window parent;
       Geometry geom;
       
-      bool managed;
-
       //bool wm_hints_input;
       //bool updateWindowAttributes();
       

@@ -10,7 +10,6 @@
 #include "Configuration.hh"
 #include "XScreen.hh"
 #include "Frame.hh"
-#include "Menu.hh"
 #include "WMCore.hh"
 
 static bool debug = false;

@@ -4,22 +4,12 @@
 #include "Client.hh"
 
 //--- Constructor and destructor -----------------------------------------
-Client::Client(XScreen* screen, Window win) : 
-   g_xscreen(screen), window(win), managed(true) { 
+Client::Client(XScreen* screen, Window win) : g_xscreen(screen), window(win) { 
    say(DEBUG, "Client::Client() constructor");
    
-   // Dont manage DESKTOP or DOCK type windows
-   unsigned int window_type = g_xscreen->getWMWindowType(win);
-   if(window_type&EWMH_WINDOW_TYPE_DESKTOP || window_type&EWMH_WINDOW_TYPE_DOCK) {
-      say(DEBUG, "DESKTOP or DOCK type");
-      XMapWindow(g_xscreen->getDisplay(), win);
-      managed = false;
-      return;
-   }
-
    initGeometry();
    
-   XSelectInput(g_xscreen->getDisplay(), window, FocusChangeMask);
+   XSelectInput(g_xscreen->getDisplay(), window, EnterWindowMask);
 
    g_xscreen->initEWMHClient(window);
    g_xscreen->setEWMHDesktop(window, g_xscreen->getCurrentTagIndex());
@@ -53,14 +43,10 @@ void Client::initGeometry(){
 }
 
 void Client::reparent(Window frame){
-
    parent = frame;
 
-   Display * display = g_xscreen->getDisplay();
-
-   XReparentWindow(display, window, parent, 0, 0);
-
-   XMapWindow(display, window);
+   XReparentWindow(g_xscreen->getDisplay(), window, parent, 0, 0);
+   XMapWindow(g_xscreen->getDisplay(), window);
 
    g_xscreen->grabButtons(parent, CONTEXT_FRAME);
 }

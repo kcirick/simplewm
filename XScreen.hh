@@ -80,7 +80,6 @@ class XScreen {
 
 
       inline XColor getBorderColour(int i) { return border_colour[i]; }
-      inline XColor getMenuColour(int i) { return menu_colour[i]; }
 
       void initTags();
       inline unsigned int getCurrentTagIndex() { return current_tag; }
@@ -131,7 +130,6 @@ class XScreen {
       unsigned int scroll_lock;
       
       XColor border_colour[NBORDERCOL];
-      XColor menu_colour[NMENUCOL];
 
       vector<Client*> client_list;
 

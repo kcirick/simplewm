@@ -1,3 +1,9 @@
+2016-09-09
+	* Menu: remove Menu class
+	* WMCore: remove Expose and ButtonRelease event
+	* Frame: property report changes in client's geometry
+	* Tag: fix incorrect tag assignment for fixed frame
+
 2016-09-08
 	* Tag version 0.1
 	* WMCore: Improve event efficiency

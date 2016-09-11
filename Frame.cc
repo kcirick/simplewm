@@ -33,7 +33,7 @@ void Frame::createFrame(Client* client){
    attr.background_pixel  = frame_pixel;
    attr.border_pixel      = frame_pixel;
    attr.event_mask        = SubstructureRedirectMask|SubstructureNotifyMask|
-            ButtonPressMask|ButtonReleaseMask|ButtonMotionMask|EnterWindowMask;
+            ButtonPressMask|ButtonMotionMask|EnterWindowMask;
    attr.override_redirect = True;
 
    geom = client->getGeometry();
@@ -57,7 +57,7 @@ void Frame::createFrame(Client* client){
    topbar_list.push_back(topbar);   // now size = 1
 
    // Add client to the list
-   client_list.push_back(client); // now size = 1
+   client_list.push_back(client);   // now size = 1
    iVisibleClient = 0;
 }
 
@@ -114,7 +114,6 @@ void Frame::dragMoveFrame() {
             XMoveWindow(display, frame, geom.x-2, geom.y-2);
 				break;
 			case ButtonRelease:
-            //send_config();
             XUngrabPointer(display, CurrentTime);
             refreshFrame(true);
 				return;
@@ -152,11 +151,8 @@ void Frame::dragResizeFrame(){
 	         geom.height = ev.xmotion.y - old_cy;
 				break;
 			case ButtonRelease:
-            //send_config();
 				XUngrabPointer(display, CurrentTime);
             refreshFrame(true);
-				/* In case maximise state has changed: */
-				//ewmh_set_net_wm_state(c);
 				return;
 			default: break;
 		}
@@ -188,23 +184,27 @@ void Frame::updateFrameGeometry() {
       XSetWindowBackground(display, topbar_list.at(i), frame_colour.pixel);
       XMoveResizeWindow(display, topbar_list.at(i), border_width+i*topbar_width, 0, topbar_width, border_width);
    }
+
+   send_config();
 }
 
 void Frame::send_config() {
 	XConfigureEvent ce;
 
-	ce.type = ConfigureNotify;
-	ce.event = frame;
-	ce.window = frame;
-	ce.x = geom.x;
-	ce.y = geom.y;
-	ce.width = geom.width;
-	ce.height = geom.height;
+   Window win = client_list.at(iVisibleClient)->getWindow();
+	Geometry cl_geom = client_list.at(iVisibleClient)->getGeometry();
+   ce.type = ConfigureNotify;
+	ce.event = win;
+	ce.window = win;
+	ce.x = cl_geom.x;
+	ce.y = cl_geom.y;
+	ce.width = cl_geom.width;
+	ce.height = cl_geom.height;
 	ce.border_width = 0;
 	ce.above = None;
 	ce.override_redirect = False;
 
-	XSendEvent(g_xscreen->getDisplay(), frame, False, StructureNotifyMask, (XEvent *)&ce);
+	XSendEvent(g_xscreen->getDisplay(), win, False, StructureNotifyMask, (XEvent *)&ce);
 }
 
 void Frame::raiseFrame() {

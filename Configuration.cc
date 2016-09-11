@@ -16,15 +16,7 @@ Configuration::Configuration(){
    border_colour[MARKED]      == "#00FF00";
    border_colour[FIXED]       == "#0000FF";
 
-   menu_colour[FG]      == "#000000";
-   menu_colour[BG]      == "#FFFFFF";
-   menu_colour[SEL_FG]  == "#FF0000";
-   menu_colour[SEL_BG]  == "#1793D0";
-
    binding_file = getenv("HOME") + string("/.config/simplewm/binding");
-   menu_file = getenv("HOME") + string("/.config/simplewm/menu");
-
-   menu_font == "fixed"; //default font
 }
 
 Configuration::~Configuration(){ }
@@ -48,20 +40,12 @@ void Configuration::loadConfig(string filename){
             for(unsigned int i=0; i<NBORDERCOL; i++)
                border_colour[i] = getToken(value, ' ');
          }
-         if(id == "menu_colour") {
-            for(unsigned int i=0; i<NMENUCOL; i++)
-               menu_colour[i] = getToken(value, ' ');
-         }
          if(id == "tag_names") {
             for(int i=0; i<n_tags; i++)
                tag_names.push_back(getToken(value, ';'));
          }
          if(id == "binding_file")
             binding_file = getenv("HOME") + string("/.config/simplewm/") + value;
-         if(id == "menu_file")
-            menu_file = getenv("HOME") + string("/.config/simplewm/") + value;
-         if(id == "menu_font")
-            menu_font = value;
       }
       configfile.close();
    }
@@ -108,7 +92,6 @@ void Configuration::loadBinding(string filename){
             else if(function == "TAG")    this_fn = TAG;
             else if(function == "SPAWN")  this_fn = SPAWN;
             else if(function == "CLIENT") this_fn = CLIENT;
-            else if(function == "MENU")   this_fn = MENU;
             
             key_bindings.push_back(new KeyMap(mod, keysym, this_fn, string(args)));
          } // end KEY
@@ -150,29 +133,3 @@ void Configuration::loadBinding(string filename){
       bindingfile.close();
    }
 }
-
-void Configuration::loadMenu(string filename){
-   say(DEBUG, string("Loading menu file "+filename));
-   
-   ifstream menufile(filename.data());
-   string line;
-   if(menufile.is_open()){
-      while(getline(menufile, line)) {
-         if(line.empty() || line[0]=='#') continue;
-
-         string id = trimString(getToken(line, '='));
-         string value = trimString(line);
-
-         if(id == "ENTRY") {
-            string label = trimString(getToken(value, '|'));
-            string command = trimString(value);
-
-            menu_items.push_back(new MenuItem(ENTRY, label, command));
-         } // end ENTRY
-         if(id == "SEPARATOR")
-            menu_items.push_back(new MenuItem(SEPARATOR, "", ""));
-      }
-      menufile.close();
-   }
-}
-

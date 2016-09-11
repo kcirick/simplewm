@@ -5,9 +5,9 @@
   - Minimal stacking window manager
   - Written in C++
   - Features:
-   - No frills (titlebar, icons, pixmap themes, autostart etc...)
+   - No frills (menu, titlebar, icons, pixmap themes, autostart etc...)
    - Text config file
-   - Simple (one-tier) root menu
+   - ~~Simple (one-tier) root menu~~
    - Window grouping 
 
 ## Screenshot

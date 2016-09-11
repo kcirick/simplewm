@@ -12,12 +12,15 @@
 void Tag::addWindow(Window win){
    say(DEBUG, "Tag::addWindow()");
 
-   Client* client = new Client(g_xscreen, win);
-   if(!client->isManaged()){
-      delete client;
+   // Dont manage DESKTOP or DOCK type windows
+   unsigned int window_type = g_xscreen->getWMWindowType(win);
+   if(window_type&EWMH_WINDOW_TYPE_DESKTOP || window_type&EWMH_WINDOW_TYPE_DOCK) {
+      say(DEBUG, "DESKTOP or DOCK type");
+      XMapWindow(g_xscreen->getDisplay(), win);
       return;
    }
 
+   Client* client = new Client(g_xscreen, win);
    g_xscreen->insertClient(client);
    
    Frame* frame = new Frame(g_xscreen, client);

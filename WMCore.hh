@@ -16,7 +16,6 @@ class WMCore {
    private:
       Configuration  * g_config;
       XScreen        * g_xscreen;
-      Menu           * g_menu;
 
       bool running;
       
@@ -35,11 +34,9 @@ class WMCore {
       void handleClientMessageEvent(XClientMessageEvent *);
       void handlePropertyEvent(XPropertyEvent *);
       void handleButtonPressEvent(XButtonEvent *);
-      void handleButtonReleaseEvent(XButtonEvent *);
       void handleEnterNotify(XCrossingEvent *);
       void handleMotionEvent(XMotionEvent *);
       void handleMappingEvent(XMappingEvent *);
-      void handleExposeEvent(XExposeEvent *);
 };
 
 #endif
