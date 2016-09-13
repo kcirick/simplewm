@@ -10,13 +10,12 @@ Configuration::Configuration(){
    // Set default values
    n_tags = 4;
    border_width = 2;
+
    border_colour[FOCUSED]     == "#0000FF";
    border_colour[UNFOCUSED]   == "#333333";
    border_colour[URGENT]      == "#FF0000";
    border_colour[MARKED]      == "#00FF00";
    border_colour[FIXED]       == "#0000FF";
-
-   binding_file = getenv("HOME") + string("/.config/simplewm/binding");
 }
 
 Configuration::~Configuration(){ }
@@ -44,25 +43,6 @@ void Configuration::loadConfig(string filename){
             for(int i=0; i<n_tags; i++)
                tag_names.push_back(getToken(value, ';'));
          }
-         if(id == "binding_file")
-            binding_file = getenv("HOME") + string("/.config/simplewm/") + value;
-      }
-      configfile.close();
-   }
-}
-
-void Configuration::loadBinding(string filename){
-   say(DEBUG, string("Loading binding file "+filename));
-
-   ifstream bindingfile(filename.data());
-   string line;
-   if(bindingfile.is_open()){
-      while(getline(bindingfile, line)) {
-         if(line.empty() || line[0]=='#') continue;
-
-         string id = trimString(getToken(line, '='));
-         string value = trimString(line);
-
          if(id == "KEY") {
             string binding = getToken(value, ' ');
             string function = getToken(value, ' ');
@@ -130,6 +110,7 @@ void Configuration::loadBinding(string filename){
             mouse_bindings.push_back(new MouseMap(mod, button, this_context, string(args)));
          } // end MOUSE
       }
-      bindingfile.close();
+      configfile.close();
    }
 }
+

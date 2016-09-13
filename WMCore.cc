@@ -17,7 +17,6 @@
 void WMCore::read_config(string config_file) {
    g_config = new Configuration();
    g_config -> loadConfig(config_file);
-   g_config -> loadBinding(g_config->getBindingFileName());
 }
 
 void WMCore::test() {
@@ -43,9 +42,6 @@ void WMCore::setup() {
    g_xscreen->grabKeys(g_xscreen->getRoot());
    g_xscreen->grabButtons(g_xscreen->getRootInput(), CONTEXT_ROOT);
 
-   //--- set up tags
-   g_xscreen->initTags();
-   
    //--- scan for existing windows
    scanWindows();
 
@@ -108,8 +104,6 @@ void WMCore::event_loop() {
                handleKeyEvent(&ev.xkey);                             break;
             case ButtonPress:
                handleButtonPressEvent(&ev.xbutton);                  break;
-            case MotionNotify:
-               handleMotionEvent(&ev.xmotion);                       break;
             case EnterNotify:
                handleEnterNotify(&ev.xcrossing);                     break;
             default:
@@ -158,7 +152,6 @@ void WMCore::key_function(int keyfn, string argument, KeySym key){
       int height_inc = 10;
 
       Tag* tag = g_xscreen->getCurrentTag();
-      //Client* client = tag->getCurrentClient();
       Frame* frame = tag->getCurrentFrame();
       if(argument=="mark")          frame->toggleMarked();
       if(argument=="group")         tag -> groupMarkedFrames(frame);
@@ -238,15 +231,9 @@ void WMCore::mouse_function(Frame* frame, string argument, int context){
    }
 }
 
-void WMCore::handleMotionEvent(XMotionEvent *ev){
-   //say(DEBUG, "handleMotionEvent()");
-}
-
 void WMCore::handleMapRequestEvent(XMapRequestEvent *ev) {
    say(DEBUG, "handleMapRequestEvent()");
 
-   //XMapWindow(g_xscreen->getDisplay(), ev->window);
-   
    Tag* tag = g_xscreen->getCurrentTag();
    tag->addWindow(ev->window);
    g_xscreen->updateCurrentTag();
@@ -264,8 +251,9 @@ void WMCore::handleUnmapEvent(XUnmapEvent *ev) {
    if(!f) return;
 
    say(DEBUG, "---> Client and Frame found");
-   g_xscreen->setWmState(ev->window, WithdrawnState);
-   tag->removeFrame(f, true, false);
+   //g_xscreen->setWmState(ev->window, WithdrawnState);
+   uint list_size = f->removeClient(c, true);
+   if(list_size==0) tag->removeFrame(f, true);
    g_xscreen->updateCurrentTag();
 }
 
@@ -280,9 +268,8 @@ void WMCore::handleDestroyWindowEvent(XDestroyWindowEvent *ev){
 
    say(DEBUG, "---> Client and Frame found");
    uint list_size = f->removeClient(c, true);
-   if(list_size==0) tag->removeFrame(f, false, true);
+   if(list_size==0) tag->removeFrame(f, true);
    g_xscreen->updateCurrentTag();
-   
 }
 
 void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){

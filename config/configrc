@@ -1,9 +1,17 @@
-#-------------------------#
-#--- SimpleWM bindings ---#
-#-------------------------#
+#-----------------------#
+#--- SimpleWM Config ---#
+#-----------------------#
 
-# Key bindings
-#--------------
+#--- Main Configurations -----
+n_tags = 5
+tag_names = One;Two;Three;Four;Five
+
+border_width = 3
+
+#               focus   unfocus urgent  marked  fixed
+border_colour = #1793D0 #333333 #FF0000 #00FF00 #0000FF
+
+#--- Key Bindings -----
 KEY = Mod4+q QUIT 0
 KEY = Mod4+k CLIENT kill
 KEY = Mod4+f CLIENT fix
@@ -37,9 +45,7 @@ KEY = Mod1+Shift+Right CLIENT resize
 KEY = Mod1+Shift+Up CLIENT resize
 KEY = Mod1+Shift+Down CLIENT resize
 
-
-# Mouse bindings
-#----------------
+#--- Mouse Bindings -----
 MOUSE = Mod4+Button1 FRAME move
 MOUSE = Mod4+Button3 FRAME resize
 MOUSE = Button1 ROOT test

@@ -66,10 +66,10 @@ void Tag::cycleFrame(){
 
 	XEvent ev;
 	for (;;) {
-      drawOutline(g_xscreen, current_frame->getFrameGeometry());
+      g_xscreen->drawOutline(current_frame->getFrameGeometry());
 		XMaskEvent(g_xscreen->getDisplay(), KeyPressMask|KeyReleaseMask, &ev);
       KeySym keysym = XkbKeycodeToKeysym(g_xscreen->getDisplay(), ev.xkey.keycode, 0, 0);
-      drawOutline(g_xscreen, current_frame->getFrameGeometry());
+      g_xscreen->drawOutline(current_frame->getFrameGeometry());
 
 		switch (ev.type) {
 			case KeyPress:
@@ -78,7 +78,6 @@ void Tag::cycleFrame(){
             current_frame = frame_list.at(iCurFrame);
 				break;
 			case KeyRelease:
-            //refreshFrame(true);
             if(keysym!=XK_Tab){
                Client* vc = frame_list.at(iCurFrame)->getClientVisible();
                if(current_frame->isIconified()){
@@ -130,7 +129,7 @@ void Tag::groupMarkedFrames(Frame* root_frame) {
          XMapWindow(g_xscreen->getDisplay(), topbar);
          root_frame->addToTopbarList(topbar);
       }
-      removeFrame(f, false, true);
+      removeFrame(f, true);
       i--;
    }
 
@@ -152,20 +151,10 @@ void Tag::detachFrame(Frame* root_frame){
    addWindow(this_window);
 }
 
-void Tag::removeFrame(Frame* frame, bool unmap_only, bool delete_frame){
+void Tag::removeFrame(Frame* frame, bool delete_frame){
    say(DEBUG, "Tag::removeFrame()");
 
    vector<Client*> clist = frame -> getClientList();
-   //if(delete_frame && clist.size()>0) return;   // can't delete frame if there is client
-
-   // remove clients from client_list
-   //for(unsigned int i=0; i<clist.size(); i++)
-   //   g_xscreen->removeClient(clist.at(i));
-
-   if(unmap_only){
-      XUnmapWindow(g_xscreen->getDisplay(), frame->getFrameWindow());
-      return;
-   }
 
    bool found = false;
    for(unsigned int i=0; i<frame_list.size(); i++){
@@ -178,6 +167,8 @@ void Tag::removeFrame(Frame* frame, bool unmap_only, bool delete_frame){
    if(!found) return;
 
    if(delete_frame) delete frame;
+
+   say(DEBUG, "END");
 }
 
 void Tag::insertFrame(Frame* frame) {
@@ -191,5 +182,4 @@ void Tag::insertFrame(Frame* frame) {
 
    // add frame
    frame_list.push_back(frame);
-   //iCurFrame = (int)frame_list.size()-1;
 }

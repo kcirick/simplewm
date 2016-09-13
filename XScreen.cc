@@ -11,7 +11,6 @@
 #include "Tag.hh"
 
 bool ignore_xerror = false;
-unsigned int xerrors_count = 0;
 int randr_event_base;
 
 const char* atomnames[NATOMS] = {
@@ -62,20 +61,17 @@ const char* atomnames[NATOMS] = {
 
 const unsigned long ROOT_EVENT_MASK = 
    SubstructureNotifyMask|SubstructureRedirectMask|/*PropertyChangeMask|EnterWindowMask|*/
-   ButtonPressMask/*|ButtonReleaseMask|ButtonMotionMask*/;
+   ButtonPressMask;
 
 int handle_xerror(Display *display, XErrorEvent *e) {
-   xerrors_count++;
    if (ignore_xerror) return 0;
 
    if(e->error_code == BadAccess && e->request_code == X_ChangeWindowAttributes)
       exit(EXIT_FAILURE);
 
    char error_buffer[256];
-   char resource_buffer[33];
    XGetErrorText(display, e->error_code, error_buffer, 256);
-   sprintf(resource_buffer, "%d", (int)e->resourceid);
-   say(WARNING, string("XError: "+string(error_buffer)+" / ID: "+string(resource_buffer)));
+   say(WARNING, string("XError: "+string(error_buffer)+" / ID: "+to_string((int)e->resourceid)));
 
    return 0;
 }
@@ -123,9 +119,13 @@ XScreen::XScreen(Display *display, Configuration *config) : g_display(display), 
    int dummy;
    has_randr = XRRQueryExtension(display, &randr_event_base, &dummy);
 
+   //--- set up screens
    initHeads();
    if(!g_heads.size())
       g_heads.push_back(Head(0,0,g_screen_geom.width,g_screen_geom.height));
+
+   //--- set up tags
+   initTags();
 
    // Set up num_lock and scroll_lock keys
    num_lock = getMaskFromKeycode(XKeysymToKeycode(g_display, XK_Num_Lock));
@@ -364,7 +364,7 @@ void XScreen::sendFrameToTag(Frame* frame, unsigned int target_tag){
    Tag* old_tag = g_tags.at(current_tag);
    Tag* new_tag = g_tags.at(target_tag);
 
-   old_tag -> removeFrame(frame, false, false);
+   old_tag -> removeFrame(frame, false);
    new_tag -> insertFrame(frame);
 
    vector<Client*> clist = frame->getClientList();
@@ -379,7 +379,7 @@ void XScreen::fixFrame(Frame* frame){
    
    if(isFixed){
       for(unsigned int i=0; i<g_tags.size(); i++)
-         if(i!=current_tag) g_tags.at(i)->removeFrame(frame, false, false);
+         if(i!=current_tag) g_tags.at(i)->removeFrame(frame, false);
    } else {
       for(unsigned int i=0; i<g_tags.size(); i++)
          if(i!=current_tag) g_tags.at(i)->insertFrame(frame);

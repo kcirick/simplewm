@@ -140,9 +140,9 @@ void Frame::dragResizeFrame(){
 
 	XWarpPointer(display, None, frame, 0, 0, 0, 0, geom.width, geom.height);
 	for (;;) {
-      drawOutline(g_xscreen, geom); /* clear */
+      g_xscreen->drawOutline(geom); /* clear */
 		XMaskEvent(display, ButtonReleaseMask|PointerMotionMask, &ev);
-      drawOutline(g_xscreen, geom);
+      g_xscreen->drawOutline(geom); 
 		switch (ev.type) {
 			case MotionNotify:
 				if (ev.xmotion.root != root_win)

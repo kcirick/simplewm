@@ -1,3 +1,9 @@
+2016-09-12
+	* General code clean up;
+	* Configuration: Merge binding to config. Only one config file
+	* config/config: Updated to reflect the change above
+	* WMCore: Fix issue where UnmapEvent doesn't remove the frame
+
 2016-09-09
 	* Menu: remove Menu class
 	* WMCore: remove Expose and ButtonRelease event

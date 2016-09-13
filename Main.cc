@@ -7,9 +7,6 @@
 #include <unistd.h>
 
 #include "Globals.hh"
-#include "Configuration.hh"
-#include "XScreen.hh"
-#include "Frame.hh"
 #include "WMCore.hh"
 
 static bool debug = false;
@@ -48,11 +45,6 @@ string getToken(string &str, char delim){
    return token;
 }
 
-void drawOutline(XScreen* screen, Geometry geom){
-   XDrawRectangle(screen->getDisplay(), screen->getRoot(), screen->invert_gc,
-         geom.x, geom.y, geom.width, geom.height);
-}
-
 //--- Main function ------------------------------------------------------
 int main(int argc, char **argv) {
    string config_file;
@@ -77,7 +69,7 @@ int main(int argc, char **argv) {
    }
    
    if(config_file.empty()) 
-      config_file = getenv("HOME") + string("/.config/simplewm/config");
+      config_file = getenv("HOME") + string("/.config/simplewm/configrc");
    
    WMCore *wmcore = new WMCore();
    wmcore -> read_config(config_file);

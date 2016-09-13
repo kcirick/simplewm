@@ -10,8 +10,6 @@
 using namespace std;
 
 //--- classes -----
-class XScreen;
-
 class Geometry {
    public:
       Geometry() : x(0), y(0), width(1), height(1) { }
@@ -121,6 +119,5 @@ void say(int, string);
 void spawn(string);
 string trimString(string str);
 string getToken(string &str, char delim);
-void drawOutline(XScreen*, Geometry);
 
 #endif

@@ -1,8 +1,6 @@
 #ifndef XSCREEN_HH
 #define XSCREEN_HH
 
-extern unsigned int xerrors_count;
-
 #define EWMH_WINDOW_TYPE_DESKTOP       (1<<0)
 #define EWMH_WINDOW_TYPE_DOCK          (1<<1)
 #define EWMH_WINDOW_TYPE_NOTIFICATION  (1<<2)
@@ -32,8 +30,6 @@ class XScreen {
       Cursor   move_curs;
       Cursor   resize_curs;
 
-      GC invert_gc;
-
       //--- functions
       inline Display* getDisplay() { return g_display; }
       inline Window getRoot() { return g_root; }
@@ -57,6 +53,11 @@ class XScreen {
          XSetInputFocus(g_display, w, RevertToPointerRoot, CurrentTime);
       }
 
+      inline void drawOutline(Geometry geom){
+         XDrawRectangle(g_display, g_root, invert_gc, geom.x, geom.y, geom.width, geom.height);
+      }
+
+
       unsigned int getMaskFromKeycode(KeyCode);
       void stripStateModifiers(unsigned int *state) {
          *state &= ~(num_lock | scroll_lock | LockMask);
@@ -78,10 +79,8 @@ class XScreen {
       unsigned int getWMWindowType(Window);
       void setWmState(Window, ulong);
 
-
       inline XColor getBorderColour(int i) { return border_colour[i]; }
 
-      void initTags();
       inline unsigned int getCurrentTagIndex() { return current_tag; }
       inline Tag* getCurrentTag() { return g_tags.at(current_tag); }
       inline void setCurrentTag(unsigned int tag) { current_tag = tag; setEWMHCurrentDesktop();}
@@ -100,7 +99,6 @@ class XScreen {
             if(client_list.at(i)==client)
                client_list.erase(client_list.begin()+i);
          }
-         //client_list.erase(find(client_list.begin(), client_list.end(), client));
       }
 
       void fixFrame(Frame*);
@@ -120,9 +118,11 @@ class XScreen {
       bool has_randr;
       Geometry g_screen_geom;
 
+      GC invert_gc;
+
       unsigned int current_tag;
-      vector<Tag*> g_tags;
       vector<Head> g_heads;
+      vector<Tag*> g_tags;
       Atom g_atoms[NATOMS];
 
       XModifierKeymap * modifier_map;
@@ -135,6 +135,7 @@ class XScreen {
 
       //--- functions
       void initHeads();
+      void initTags();
 
       void grabKey(Window, unsigned int, unsigned int);
       void grabButton(Window, unsigned int, unsigned int);

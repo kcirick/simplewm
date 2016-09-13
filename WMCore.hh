@@ -1,6 +1,10 @@
 #ifndef WMCORE_HH
 #define WMCORE_HH
 
+class Configuration;
+class Frame;
+class XScreen;
+
 class WMCore {
    public:
       WMCore() : running(true) { };
@@ -35,7 +39,6 @@ class WMCore {
       void handlePropertyEvent(XPropertyEvent *);
       void handleButtonPressEvent(XButtonEvent *);
       void handleEnterNotify(XCrossingEvent *);
-      void handleMotionEvent(XMotionEvent *);
       void handleMappingEvent(XMappingEvent *);
 };
 

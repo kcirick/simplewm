@@ -7,7 +7,6 @@ class Configuration {
       ~Configuration();
 
       void loadConfig(string);
-      void loadBinding(string);
       
       inline int getNTags() const { return n_tags; }
       inline string getTagName(unsigned int i) { return tag_names.at(i); }
@@ -18,8 +17,6 @@ class Configuration {
                                     });
          return tag_names_all;
       }
-
-      inline string getBindingFileName() { return binding_file; }
 
       inline int getBorderWidth() { return border_width; }
       inline string getBorderColour(int i) { return border_colour[i];}
@@ -33,8 +30,6 @@ class Configuration {
       int border_width;
 
       string border_colour[NBORDERCOL];
-
-      string binding_file;
 
       vector <KeyMap*> key_bindings;
       vector <MouseMap*> mouse_bindings;
