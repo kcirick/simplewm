@@ -1,3 +1,7 @@
+2016-09-29
+	* WMCore: Check for existing client at MapRequestEvent
+	* Frame: Keep the frame position on the mouse button release when moving the window
+
 2016-09-12
 	* General code clean up;
 	* Configuration: Merge binding to config. Only one config file

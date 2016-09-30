@@ -235,6 +235,11 @@ void WMCore::handleMapRequestEvent(XMapRequestEvent *ev) {
    say(DEBUG, "handleMapRequestEvent()");
 
    Tag* tag = g_xscreen->getCurrentTag();
+
+   // Don't do anything if there is already a client
+   Client *c = g_xscreen->findClient(ev->window);
+   if(c) return;
+
    tag->addWindow(ev->window);
    g_xscreen->updateCurrentTag();
 }

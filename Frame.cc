@@ -111,7 +111,7 @@ void Frame::dragMoveFrame() {
 				geom.x = old_cx + (ev.xmotion.x - x) + 2;
 				geom.y = old_cy + (ev.xmotion.y - y) + 2;
 
-            XMoveWindow(display, frame, geom.x-2, geom.y-2);
+            XMoveWindow(display, frame, geom.x, geom.y);
 				break;
 			case ButtonRelease:
             XUngrabPointer(display, CurrentTime);
