@@ -117,7 +117,7 @@ enum BorderColours { FOCUSED, UNFOCUSED, URGENT, MARKED, FIXED, NBORDERCOL };
 //--- functions in Main.cc -----
 void say(int, string);
 void spawn(string);
-string trimString(string str);
-string getToken(string &str, char delim);
+string trimString(string);
+string getToken(string&, char);
 
 #endif

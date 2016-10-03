@@ -32,10 +32,6 @@ void WMCore::setup() {
 
    g_xscreen  = new XScreen(g_display, g_config);
 
-   //TODO
-   //rules = new Rule();
-   //rules -> load();
-
    XDefineCursor(g_display, g_xscreen->getRoot(), g_xscreen->default_curs);
 
    //--- set up keys and buttons
@@ -86,26 +82,27 @@ void WMCore::event_loop() {
          //say(DEBUG, "code "+to_string(ev.type));
          switch(ev.type) {
             
+            case KeyPress:
+               handleKeyEvent(&ev.xkey);                             break;
+            case ButtonPress:
+               handleButtonPressEvent(&ev.xbutton);                  break;
+
             case MapRequest:
                handleMapRequestEvent(&ev.xmaprequest);               break;
             case UnmapNotify:
                handleUnmapEvent(&ev.xunmap);                         break;
             case DestroyNotify:
                handleDestroyWindowEvent(&ev.xdestroywindow);         break;
+            case EnterNotify:
+               handleEnterNotify(&ev.xcrossing);                     break;
+
             case ConfigureRequest:
                handleConfigureRequestEvent(&ev.xconfigurerequest);   break;
             case ClientMessage:
                handleClientMessageEvent(&ev.xclient);                break;
             case PropertyNotify:
                handlePropertyEvent(&ev.xproperty);                   break;
-            case MappingNotify:
-               handleMappingEvent(&ev.xmapping);                     break;
-            case KeyPress:
-               handleKeyEvent(&ev.xkey);                             break;
-            case ButtonPress:
-               handleButtonPressEvent(&ev.xbutton);                  break;
-            case EnterNotify:
-               handleEnterNotify(&ev.xcrossing);                     break;
+
             default:
                //if(XScreen::hasRandr()){
                //   say(DEBUG, "XRANDR event"); 
@@ -117,6 +114,7 @@ void WMCore::event_loop() {
    }
 }
 
+//---
 void WMCore::handleKeyEvent(XKeyEvent *ev) {
    say(DEBUG, "handleKeyEvent()");
    KeySym keysym = XkbKeycodeToKeysym(g_xscreen->getDisplay(), ev->keycode, 0, 0);
@@ -142,7 +140,6 @@ void WMCore::key_function(int keyfn, string argument, KeySym key){
       if(argument=="prev")    g_xscreen->setCurrentTag(g_xscreen->getCurrentTagIndex()-1);
       if(argument=="next")    g_xscreen->setCurrentTag(g_xscreen->getCurrentTagIndex()+1);
       if(argument=="select")  g_xscreen->setCurrentTag(key-XK_1);
-      g_xscreen->updateAllTags();
    }
    
    //--- CLIENT -----
@@ -180,9 +177,9 @@ void WMCore::key_function(int keyfn, string argument, KeySym key){
       }
       if(argument=="send_to_tag"){
          g_xscreen->sendFrameToTag(frame, key-XK_1);
-         // All tags need to be updated
-         g_xscreen->updateAllTags();
-         return;
+         XUnmapWindow(g_xscreen->getDisplay(), frame->getFrameWindow());
+
+         g_xscreen->setEWMHClientList();
       }
       g_xscreen->updateCurrentTag();
    }
@@ -231,6 +228,7 @@ void WMCore::mouse_function(Frame* frame, string argument, int context){
    }
 }
 
+//---
 void WMCore::handleMapRequestEvent(XMapRequestEvent *ev) {
    say(DEBUG, "handleMapRequestEvent()");
 
@@ -277,6 +275,23 @@ void WMCore::handleDestroyWindowEvent(XDestroyWindowEvent *ev){
    g_xscreen->updateCurrentTag();
 }
 
+void WMCore::handleEnterNotify(XCrossingEvent *ev){
+   say(DEBUG, "handleEnterNotify()");
+
+   Tag* tag = g_xscreen->getCurrentTag();
+   Frame* frame = tag->findFrame(ev->window);
+   if(frame){
+      // no action if frame is already focused
+      if(frame == tag->getCurrentFrame()) return;
+      
+      tag->setCurrentFrame(frame);
+      //Client* c = frame->getClientVisible();
+      g_xscreen->updateCurrentTag();
+      //g_xscreen -> setEWMHActiveWindow(c->getWindow());
+   }
+}
+
+//---
 void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){
    say(DEBUG, "handleConfigureRequestEvent()");
 
@@ -295,6 +310,13 @@ void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){
       if(value_mask&CWHeight) fgeom.height = ev->height + 2*g_config->getBorderWidth();
       f->setFrameGeometry(fgeom);
 
+      //c->raiseClient();
+      XRaiseWindow(g_xscreen->getDisplay(), c->getWindow());
+      g_xscreen->setInputFocus(c->getWindow());
+      tag->setCurrentFrame(f);
+      g_xscreen->updateCurrentTag();
+      //g_xscreen -> setEWMHActiveWindow(c->getWindow());
+
 		/*
       if (ev->value_mask & CWStackMode && e->value_mask & CWSibling) {
 			Client *sibling = findClient(e->above);
@@ -307,8 +329,7 @@ void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){
       */
 	} 
    else{
-
-      /* 
+      ///
       XWindowChanges wc;
       wc.x              = ev->x;
       wc.y              = ev->y;
@@ -319,37 +340,9 @@ void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){
       wc.stack_mode     = ev->detail;
 
       XConfigureWindow(g_xscreen->getDisplay(), ev->window, ev->value_mask, &wc);
-      */
+      ///
       
-      //FIXME This is temporary. Better solution is needed
-      XClassHint* hint = XAllocClassHint();
-      XGetClassHint(g_xscreen->getDisplay(), ev->window, hint);
-
-      string class_str = hint->res_class ? string(hint->res_class) : "broken";
-      string name_str = hint->res_name ? string(hint->res_name) : "broken";
-      XFree(hint->res_class);
-      XFree(hint->res_name);
-      XFree(hint);
-
-      say(DEBUG, "---> class = "+class_str+" / name = "+name_str);
-      /*
-      for(int i=0; i<LENGTH(custom_rules); i++){
-         if(!strcmp(custom_rules[i].class_str, class_str)){
-            client->tag = find_tag(tags[custom_rules[i].tag]);
-            client->floating = custom_rules[i].floating;
-         }
-      }*/
-     
-      // perhaps via rules
-		XMoveResizeWindow(g_xscreen->getDisplay(), ev->window, ev->x, ev->y, ev->width, ev->height);
-      if(name_str == "panel"){
-         Atom stateAbove[1];
-         stateAbove[0] = g_xscreen->getAtom(STATE_ABOVE);
-         XChangeProperty(g_xscreen->getDisplay(), ev->window, g_xscreen->getAtom(STATE), XA_ATOM, 32, 
-            PropModeReplace, (unsigned char *) &stateAbove, 1);
-      }
-      else
-         XLowerWindow(g_xscreen->getDisplay(), ev->window);
+      //XMoveResizeWindow(g_xscreen->getDisplay(), ev->window, ev->x, ev->y, ev->width, ev->height);
    }
 
    g_xscreen->updateCurrentTag();
@@ -377,22 +370,5 @@ void WMCore::handlePropertyEvent(XPropertyEvent *ev){
    else if(ev->atom == g_xscreen->getAtom(WM_HINTS)){
       say(DEBUG, "WM_HINTS");
    }
-}
-
-void WMCore::handleEnterNotify(XCrossingEvent *ev){
-   say(DEBUG, "handleEnterNotify()");
-
-   Tag* tag = g_xscreen->getCurrentTag();
-   Frame* frame = tag->findFrame(ev->window);
-   if(frame){
-      tag->setCurrentFrame(frame);
-      Client* c = frame->getClientVisible();
-      g_xscreen->updateCurrentTag();
-      g_xscreen -> setEWMHActiveWindow(c->getWindow());
-   }
-}
-
-void WMCore::handleMappingEvent(XMappingEvent *ev){
-   say(DEBUG, "handleMappingEvent()");
 }
 

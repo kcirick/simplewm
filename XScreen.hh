@@ -57,7 +57,6 @@ class XScreen {
          XDrawRectangle(g_display, g_root, invert_gc, geom.x, geom.y, geom.width, geom.height);
       }
 
-
       unsigned int getMaskFromKeycode(KeyCode);
       void stripStateModifiers(unsigned int *state) {
          *state &= ~(num_lock | scroll_lock | LockMask);
@@ -65,8 +64,6 @@ class XScreen {
 
       void grabKeys(Window);
       void grabButtons(Window, int);
-
-      //static bool getProperty(Window, AtomName, Atom, unsigned long, unsigned char**, unsigned long*);
 
       // EWMH functions
       void initEWMHProperties();
@@ -83,13 +80,13 @@ class XScreen {
 
       inline unsigned int getCurrentTagIndex() { return current_tag; }
       inline Tag* getCurrentTag() { return g_tags.at(current_tag); }
-      inline void setCurrentTag(unsigned int tag) { current_tag = tag; setEWMHCurrentDesktop();}
+      void setCurrentTag(uint);
 
       void sendFrameToTag(Frame*, unsigned int);
 
       //--- Tag functions -----
-      void updateAllTags();
-      void updateCurrentTag();
+      void updateTag(uint);
+      void updateCurrentTag(){ updateTag(current_tag); }
 
       Client* findClient(Window win);
 
@@ -137,8 +134,8 @@ class XScreen {
       void initHeads();
       void initTags();
 
-      void grabKey(Window, unsigned int, unsigned int);
-      void grabButton(Window, unsigned int, unsigned int);
+      void grabKey(Window, uint, uint);
+      void grabButton(Window, uint, uint);
 };
 
 #endif

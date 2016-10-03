@@ -39,7 +39,6 @@ class WMCore {
       void handlePropertyEvent(XPropertyEvent *);
       void handleButtonPressEvent(XButtonEvent *);
       void handleEnterNotify(XCrossingEvent *);
-      void handleMappingEvent(XMappingEvent *);
 };
 
 #endif

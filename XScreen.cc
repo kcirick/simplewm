@@ -147,7 +147,6 @@ XScreen::XScreen(Display *display, Configuration *config) : g_display(display), 
 XScreen::~XScreen() { }
 
 //------------------------------------------------------------------------
-
 void XScreen::initHeads() {
    g_heads.clear();
 
@@ -199,7 +198,7 @@ void XScreen::grabKeys(Window win){
       grabKey(win, keymap.at(i)->mask, keymap.at(i)->keysym);
 }
 
-void XScreen::grabKey(Window win, unsigned int mod, unsigned int keysym){
+void XScreen::grabKey(Window win, uint mod, uint keysym){
    KeyCode key = XKeysymToKeycode(g_display, keysym);
 
    XGrabKey(g_display, key, mod, win, True, GrabModeAsync, GrabModeAsync);
@@ -227,7 +226,7 @@ void XScreen::grabButtons(Window win, int this_context) {
    }
 }
 
-void XScreen::grabButton(Window win, unsigned int mod, unsigned int button) {
+void XScreen::grabButton(Window win, uint mod, uint button) {
    long mask = ButtonPressMask|ButtonReleaseMask; 
 
    XGrabButton(g_display, button, mod, win, True, mask, GrabModeAsync, GrabModeAsync, None, None);
@@ -305,6 +304,8 @@ void XScreen::setEWMHDesktop(Window window, uint tag) {
 }
 
 unsigned int XScreen::getWMWindowType(Window win){
+   say(DEBUG, "XScreen::getWMWindowType()");
+
    Atom *aprop;
    unsigned long nitems;
    unsigned long expected=1024;
@@ -331,7 +332,7 @@ unsigned int XScreen::getWMWindowType(Window win){
       if(aprop[i] == g_atoms[WINDOW_TYPE_NOTIFICATION])
          type |= EWMH_WINDOW_TYPE_NOTIFICATION;
    }
-   XFree(aprop);
+   XFree(prop);
 
    return type;
 }
@@ -345,19 +346,23 @@ Client* XScreen::findClient(Window win) {
    return client;
 }
 
-void XScreen::updateAllTags(){
-   for(unsigned int i=0; i<g_tags.size(); i++){
-      if(i==current_tag)   g_tags.at(i) -> showTag();
-      else                 g_tags.at(i) -> hideTag();
-   }
+void XScreen::setCurrentTag(unsigned int tag) { 
+   // no action required of already on current tag
+   if(tag==current_tag) return;
+
+   // hide old tag
+   g_tags.at(current_tag) -> hideTag();
+
+   // set the new tag and show/update it
+   current_tag = tag;  
+   g_tags.at(current_tag) -> showTag();
    updateCurrentTag();
-   
-   // To update the client list
-   setEWMHClientList();
+
+   setEWMHCurrentDesktop();
 }
 
-void XScreen::updateCurrentTag(){
-   g_tags.at(current_tag) -> updateTag();
+void XScreen::updateTag(unsigned int itag){
+   g_tags.at(itag) -> updateTag();
 }
 
 void XScreen::sendFrameToTag(Frame* frame, unsigned int target_tag){

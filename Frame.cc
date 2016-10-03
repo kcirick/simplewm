@@ -75,6 +75,8 @@ void Frame::refreshFrame(bool current){
 
       XRaiseWindow(display, client_list.at(iVisibleClient)->getWindow());
       g_xscreen->setInputFocus(client_list.at(iVisibleClient)->getWindow());
+
+      g_xscreen -> setEWMHActiveWindow(client_list.at(iVisibleClient)->getWindow());
    } 
 
    XClearWindow(display, frame);

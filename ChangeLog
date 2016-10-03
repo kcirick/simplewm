@@ -1,3 +1,13 @@
+2016-10-03
+	* WMCore: Remove MappingNotifyEvent
+	* WMCore: Improve efficiency in event handlers
+	* Frame: Update EWMH ActiveWindow on refreshFrame()
+	* Tag: Moved class/name matching (to become rules) from WMCore::handleConfigureRequestEvent()
+	* Tag: Adding EWMH_WINDOW_TYPE_NOTIFICATION to initial check
+	* XScreen: Remove updateAllTags(). Add updateTag(). Make updateCurrentTag() inline.
+	* XScreen: Updates to tag switching to improve efficiency
+	* config/configrc: Adding example RULE line as an idea for (near-)future implementation
+
 2016-09-29
 	* WMCore: Check for existing client at MapRequestEvent
 	* Frame: Keep the frame position on the mouse button release when moving the window
