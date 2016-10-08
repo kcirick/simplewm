@@ -19,6 +19,7 @@ class Frame {
       inline vector<Client*> getClientList() { return client_list; }
       inline Client* getClientVisible() { return client_list.at(iVisibleClient); }
       inline void setVisibleClientIndex(unsigned int i) { iVisibleClient = i; }
+      inline unsigned int getVisibleClientIndex() { return iVisibleClient; }
       inline unsigned int getNClients() { return client_list.size(); }
 
       inline vector<Window> getTopbarList() { return topbar_list; }
@@ -41,8 +42,8 @@ class Frame {
 
       unsigned int removeClient(Client *, bool);
 
-      void killVisibleClient(bool);
-   
+      void killClient(bool, int);
+      
    private:
       XScreen* g_xscreen;
 

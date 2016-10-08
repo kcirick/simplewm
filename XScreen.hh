@@ -3,7 +3,10 @@
 
 #define EWMH_WINDOW_TYPE_DESKTOP       (1<<0)
 #define EWMH_WINDOW_TYPE_DOCK          (1<<1)
-#define EWMH_WINDOW_TYPE_NOTIFICATION  (1<<2)
+#define EWMH_WINDOW_TYPE_UTILITY       (1<<2)
+#define EWMH_WINDOW_TYPE_SPLASH        (1<<3)
+#define EWMH_WINDOW_TYPE_DIALOG        (1<<4)
+#define EWMH_WINDOW_TYPE_NOTIFICATION  (1<<5)
 
 class Tag;
 class Frame;
@@ -73,6 +76,8 @@ class XScreen {
       void setEWMHDesktop(Window, uint);
       void setEWMHCurrentDesktop();
 
+      inline void unsetProperty(Window win, AtomName atom){ XDeleteProperty(g_display, win, g_atoms[atom]); }
+
       unsigned int getWMWindowType(Window);
       void setWmState(Window, ulong);
 
@@ -100,6 +105,14 @@ class XScreen {
 
       void fixFrame(Frame*);
 
+      void addWindow(Window);
+      void removeWindow(Window, bool);
+
+      inline bool hasRandr(int* randr_base) { 
+         *randr_base = randr_event_base; 
+         return has_randr; 
+      }
+
    private:
       //--- static variables
       Display* g_display;
@@ -113,6 +126,7 @@ class XScreen {
       Colormap g_colormap;
       
       bool has_randr;
+      int randr_event_base;
       Geometry g_screen_geom;
 
       GC invert_gc;

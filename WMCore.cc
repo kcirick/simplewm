@@ -2,6 +2,7 @@
 #include <X11/keysym.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
+#include <X11/extensions/Xrandr.h>
 
 #include "Globals.hh"
 #include "Configuration.hh"
@@ -50,8 +51,6 @@ void WMCore::setup() {
 void WMCore::scanWindows(){
    say(DEBUG, "WMCore::scanWindows()");
    
-   Tag* tag = g_xscreen->getCurrentTag();
-
    uint nwins;
    Window dwin1, dwin2, *wins;
    XWindowAttributes winattr;
@@ -62,13 +61,15 @@ void WMCore::scanWindows(){
    for(uint j=0; j< nwins; j++){
       XGetWindowAttributes(g_xscreen->getDisplay(), wins[j], &winattr);
       if(!winattr.override_redirect && winattr.map_state == IsViewable)
-         tag -> addWindow(wins[j]);
+         g_xscreen -> addWindow(wins[j]);
    }
    XFree(wins);
 }
 
 void WMCore::clean_up() {
    say(INFO, "Cleaning up...");
+
+   XCloseDisplay(g_xscreen->getDisplay());
 }
 
 //------------------------------------------------------------------------
@@ -76,6 +77,12 @@ void WMCore::clean_up() {
 void WMCore::event_loop() {
    say(INFO, "Starting main event loop...");
    
+   // First get randr information
+   bool has_randr =false;
+   int randr_event_base = 0;
+   has_randr = g_xscreen->hasRandr(&randr_event_base);
+   say(DEBUG, "randr_event_base = "+to_string(randr_event_base));
+
    XEvent ev;
    while(running){
       if(!XNextEvent(g_xscreen->getDisplay(), &ev)) {
@@ -104,9 +111,10 @@ void WMCore::event_loop() {
                handlePropertyEvent(&ev.xproperty);                   break;
 
             default:
-               //if(XScreen::hasRandr()){
-               //   say(DEBUG, "XRANDR event"); 
-               //}
+               if(has_randr && ev.type == randr_event_base + RRScreenChangeNotify){
+                  say(DEBUG, "RandR event"); 
+                  XRRUpdateConfiguration(&ev);
+               }
                break;
 
          } // end switch
@@ -158,7 +166,7 @@ void WMCore::key_function(int keyfn, string argument, KeySym key){
       if(argument=="next_win")      frame -> selectNextClient(1);
       if(argument=="fix")           g_xscreen->fixFrame(frame);
       if(argument=="iconify")       frame -> setIconified(true);
-      if(argument=="kill")          frame -> killVisibleClient(false);
+      if(frame && argument=="kill") frame -> killClient(false, frame->getVisibleClientIndex());
       if(argument=="move"){
          Geometry g = frame->getFrameGeometry();
               if(key==XK_Left)      g.x -= width_inc;
@@ -232,13 +240,11 @@ void WMCore::mouse_function(Frame* frame, string argument, int context){
 void WMCore::handleMapRequestEvent(XMapRequestEvent *ev) {
    say(DEBUG, "handleMapRequestEvent()");
 
-   Tag* tag = g_xscreen->getCurrentTag();
-
    // Don't do anything if there is already a client
    Client *c = g_xscreen->findClient(ev->window);
    if(c) return;
 
-   tag->addWindow(ev->window);
+   g_xscreen->addWindow(ev->window);
    g_xscreen->updateCurrentTag();
 }
 
@@ -247,31 +253,22 @@ void WMCore::handleUnmapEvent(XUnmapEvent *ev) {
 
    if(!ev->send_event) return;
 
-   Tag* tag = g_xscreen->getCurrentTag();
-	Client *c = g_xscreen->findClient(ev->window);
-   if(!c) return;
-   Frame  *f = tag->findFrame(c->getFrame());
-   if(!f) return;
+   ulong data[2];
+   data[0] = WithdrawnState;
+   data[1] = None; // No Icon
+   XChangeProperty(g_xscreen->getDisplay(), ev->window, g_xscreen->getAtom(WM_STATE), g_xscreen->getAtom(WM_STATE),
+      32, PropModeReplace, (unsigned char*)data, 2);
 
-   say(DEBUG, "---> Client and Frame found");
-   //g_xscreen->setWmState(ev->window, WithdrawnState);
-   uint list_size = f->removeClient(c, true);
-   if(list_size==0) tag->removeFrame(f, true);
-   g_xscreen->updateCurrentTag();
+   g_xscreen->unsetProperty(ev->window, STATE);
+   g_xscreen->unsetProperty(ev->window, NET_WM_DESKTOP);
+
+   g_xscreen->removeWindow(ev->window, false);
 }
 
 void WMCore::handleDestroyWindowEvent(XDestroyWindowEvent *ev){
    say(DEBUG, "handleDestroyWindowEvent()");
    
-   Tag* tag = g_xscreen->getCurrentTag();
-   Client* c = g_xscreen->findClient(ev->window);
-   if(!c) return;
-   Frame* f = tag->findFrame(c->getFrame());
-   if(!f) return;
-
-   say(DEBUG, "---> Client and Frame found");
-   uint list_size = f->removeClient(c, true);
-   if(list_size==0) tag->removeFrame(f, true);
+   g_xscreen->removeWindow(ev->window, true);
    g_xscreen->updateCurrentTag();
 }
 
@@ -285,9 +282,7 @@ void WMCore::handleEnterNotify(XCrossingEvent *ev){
       if(frame == tag->getCurrentFrame()) return;
       
       tag->setCurrentFrame(frame);
-      //Client* c = frame->getClientVisible();
       g_xscreen->updateCurrentTag();
-      //g_xscreen -> setEWMHActiveWindow(c->getWindow());
    }
 }
 
@@ -310,26 +305,11 @@ void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){
       if(value_mask&CWHeight) fgeom.height = ev->height + 2*g_config->getBorderWidth();
       f->setFrameGeometry(fgeom);
 
-      //c->raiseClient();
-      XRaiseWindow(g_xscreen->getDisplay(), c->getWindow());
-      g_xscreen->setInputFocus(c->getWindow());
       tag->setCurrentFrame(f);
+      f->raiseFrame();
       g_xscreen->updateCurrentTag();
-      //g_xscreen -> setEWMHActiveWindow(c->getWindow());
-
-		/*
-      if (ev->value_mask & CWStackMode && e->value_mask & CWSibling) {
-			Client *sibling = findClient(e->above);
-			if (sibling) 
-				wc.sibling = sibling->parent;
-		}
-		do_window_changes(ev->value_mask, &wc, c);
-		//if (c == current) 
-		//	discard_enter_events(c);
-      */
 	} 
    else{
-      ///
       XWindowChanges wc;
       wc.x              = ev->x;
       wc.y              = ev->y;
@@ -340,9 +320,6 @@ void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){
       wc.stack_mode     = ev->detail;
 
       XConfigureWindow(g_xscreen->getDisplay(), ev->window, ev->value_mask, &wc);
-      ///
-      
-      //XMoveResizeWindow(g_xscreen->getDisplay(), ev->window, ev->x, ev->y, ev->width, ev->height);
    }
 
    g_xscreen->updateCurrentTag();

@@ -18,7 +18,8 @@ Usage:
 
 ## Screenshot
 
-( To be added )
+v0.2
+<a href='https://s6.postimg.org/8aqgm3lwh/SS_20161008.png' target='_blank'><img src='https://s6.postimg.org/8aqgm3lwh/SS_20161008.png' width='350' /></a>
 
 ## Version Log
 
@@ -34,6 +35,5 @@ Usage:
   - Implement EWMH properties
   - Implement rules
   - ~~Implement window grouping~~ (v0.1)
-  - ~~Implement menu~~ (v0.1)
   - ~~Implement fixed state for frames~~ (v0.1)
   - ~~Implement iconic state for frames~~ (v0.1)

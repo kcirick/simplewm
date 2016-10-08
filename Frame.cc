@@ -212,7 +212,7 @@ void Frame::send_config() {
 void Frame::raiseFrame() {
    XRaiseWindow(g_xscreen->getDisplay(), frame);
    g_xscreen->setInputFocus(client_list.at(iVisibleClient)->getWindow());
-   XClearWindow(g_xscreen->getDisplay(), client_list.at(iVisibleClient)->getWindow());
+   g_xscreen -> setEWMHActiveWindow(client_list.at(iVisibleClient)->getWindow());
 }
 
 void Frame::selectNextClient(int direction){
@@ -250,11 +250,11 @@ unsigned int Frame::removeClient(Client *client, bool delete_client){
    return client_list.size();
 }
 
-void Frame::killVisibleClient(bool force_kill){
+void Frame::killClient(bool force_kill, int iclient){
    int i,n,found=0;
    Atom * protocols;
    
-   Client* c = client_list.at(iVisibleClient);
+   Client* c = client_list.at(iclient);
    if(!force_kill && XGetWMProtocols(g_xscreen->getDisplay(), c->getWindow(), &protocols, &n)){
       for(i=0; i<n; i++)
          if(protocols[i]==g_xscreen->getAtom(WM_DELETE_WINDOW))

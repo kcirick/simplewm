@@ -14,46 +14,6 @@
 void Tag::addWindow(Window win){
    say(DEBUG, "Tag::addWindow()");
 
-   XClassHint* hint = XAllocClassHint();
-   XGetClassHint(g_xscreen->getDisplay(), win, hint);
-
-   string class_str = hint->res_class ? string(hint->res_class) : "broken";
-   string name_str = hint->res_name ? string(hint->res_name) : "broken";
-   say(DEBUG, "---> class = '"+class_str+"'/ name = '"+name_str+"'");
-   XFree(hint->res_class);
-   XFree(hint->res_name);
-   XFree(hint);
-
-   /*
-   // TODO rules go here
-      for(int i=0; i<LENGTH(custom_rules); i++){
-      if(!strcmp(custom_rules[i].class_str, class_str)){
-      client->tag = find_tag(tags[custom_rules[i].tag]);
-      client->floating = custom_rules[i].floating;
-      }
-      }*/
-
-   // perhaps via rules
-   if(name_str == "panel"){
-      Atom stateAbove[1];
-      stateAbove[0] = g_xscreen->getAtom(STATE_ABOVE);
-      XChangeProperty(g_xscreen->getDisplay(), win, g_xscreen->getAtom(STATE), XA_ATOM, 32,
-            PropModeReplace, (unsigned char *) &stateAbove, 1);
-   }
-   else if(name_str == "lemonbar") {
-      XLowerWindow(g_xscreen->getDisplay(), win);
-   }
-
-   // Dont manage DESKTOP or DOCK type windows
-   uint window_type = g_xscreen->getWMWindowType(win);
-   if(window_type&EWMH_WINDOW_TYPE_DESKTOP || 
-      window_type&EWMH_WINDOW_TYPE_NOTIFICATION ||
-      window_type&EWMH_WINDOW_TYPE_DOCK) {
-      say(DEBUG, "DESKTOP or TOOLBAR or DOCK type");
-      XMapWindow(g_xscreen->getDisplay(), win);
-      return;
-   }
-
    Client* client = new Client(g_xscreen, win);
    g_xscreen->insertClient(client);
    
@@ -96,6 +56,10 @@ void Tag::hideTag(){
 }
 
 void Tag::cycleFrame(){
+
+   // do nothing if there are no frames to cycle
+   if(iCurFrame<0) return;
+
    unsigned int list_size=frame_list.size();
    Frame* current_frame = frame_list.at(iCurFrame);
 
@@ -193,13 +157,14 @@ void Tag::detachFrame(Frame* root_frame){
 void Tag::removeFrame(Frame* frame, bool delete_frame){
    say(DEBUG, "Tag::removeFrame()");
 
-   vector<Client*> clist = frame -> getClientList();
+   //vector<Client*> clist = frame -> getClientList();
 
+   XUnmapWindow(g_xscreen->getDisplay(), frame->getFrameWindow());
    bool found = false;
    for(unsigned int i=0; i<frame_list.size(); i++){
       if(frame_list.at(i) == frame){ 
          frame_list.erase(frame_list.begin()+i);
-         iCurFrame = (i>0) ? (i-1) : 0;
+         iCurFrame = (i>0) ? i-1 : frame_list.size()-1;
          found = true;
       }
    }

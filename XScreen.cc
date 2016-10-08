@@ -11,7 +11,6 @@
 #include "Tag.hh"
 
 bool ignore_xerror = false;
-int randr_event_base;
 
 const char* atomnames[NATOMS] = {
    // EWMH atoms
@@ -176,7 +175,7 @@ void XScreen::initTags() {
 
    current_tag = 0; 
    for(int i=0; i<g_config -> getNTags(); i++)
-      g_tags.push_back(new Tag(this, g_config, i));
+      g_tags.push_back(new Tag(this, i));
 }
 
 unsigned int XScreen::getMaskFromKeycode(KeyCode keycode) {
@@ -329,13 +328,99 @@ unsigned int XScreen::getWMWindowType(Window win){
          type |= EWMH_WINDOW_TYPE_DESKTOP;
       if(aprop[i] == g_atoms[WINDOW_TYPE_DOCK])
          type |= EWMH_WINDOW_TYPE_DOCK;
+      if(aprop[i] == g_atoms[WINDOW_TYPE_UTILITY])
+         type |= EWMH_WINDOW_TYPE_UTILITY;
+      if(aprop[i] == g_atoms[WINDOW_TYPE_SPLASH])
+         type |= EWMH_WINDOW_TYPE_SPLASH;
+      if(aprop[i] == g_atoms[WINDOW_TYPE_DIALOG])
+         type |= EWMH_WINDOW_TYPE_DIALOG;
       if(aprop[i] == g_atoms[WINDOW_TYPE_NOTIFICATION])
          type |= EWMH_WINDOW_TYPE_NOTIFICATION;
+
    }
    XFree(prop);
 
    return type;
 }
+
+void XScreen::addWindow(Window win){
+
+   say(DEBUG, "XScreen::addWindow()");
+   
+   // Get WM_NAME
+   char *name;
+   XFetchName(g_display, win, &name);
+   string name_str = name ? string(name) : "Untitled";
+   if(name) XFree(name);
+   
+   // Get class info (WM_CLASS)
+   XClassHint* hint = XAllocClassHint();
+   XGetClassHint(g_display, win, hint);
+   string class_str = hint->res_class ? string(hint->res_class) : "broken";
+   string classname_str = hint->res_name ? string(hint->res_name) : "broken";
+   if(hint){
+      XFree(hint->res_class);
+      XFree(hint->res_name);
+      XFree(hint);
+   }
+   
+   say(DEBUG, "---> wm name = "+name_str+" / class = "+class_str+" (name = "+classname_str+")");
+
+   uint this_tag = current_tag;
+
+   // TODO rules go here
+   vector<Rule*> custom_rules = g_config -> getRules();
+   for(uint i=0; i<custom_rules.size(); i++){
+      say(DEBUG, "HERE");
+   }
+
+   // perhaps via rules
+   if(name_str == "panel"){
+      Atom stateAbove[1];
+      stateAbove[0] = g_atoms[STATE_ABOVE];
+      XChangeProperty(g_display, win, g_atoms[STATE], XA_ATOM, 32,
+            PropModeReplace, (unsigned char *) &stateAbove, 1);
+   }
+   else if(name_str == "bar") {
+      XLowerWindow(g_display, win);
+   }
+
+   // Dont manage DESKTOP or DOCK type windows
+   uint window_type = getWMWindowType(win);
+   if(window_type&EWMH_WINDOW_TYPE_DESKTOP || 
+      window_type&EWMH_WINDOW_TYPE_NOTIFICATION ||
+      //window_type&EWMH_WINDOW_TYPE_DIALOG ||
+      //window_type&EWMH_WINDOW_TYPE_UTILITY ||
+      window_type&EWMH_WINDOW_TYPE_SPLASH ||
+      window_type&EWMH_WINDOW_TYPE_DOCK) {
+      say(DEBUG, "DESKTOP or TOOLBAR or DOCK type");
+      XMapWindow(g_display, win);
+      return;
+   }
+
+   g_tags.at(this_tag)->addWindow(win);
+}
+
+void XScreen::removeWindow(Window win, bool destroy){
+	Tag* t = g_tags.at(current_tag);
+
+   Client *c = findClient(win);
+   if(!c) return;
+   Frame  *f = t->findFrame(c->getFrame());
+   if(!f) return;
+
+   say(DEBUG, "---> Client and Frame found");
+   uint list_size = f->removeClient(c, true);
+   say(DEBUG, "---> List size = "+to_string(list_size));
+   if(list_size==0){
+      if(f->isFixed()){
+         for(uint itag=0; itag<g_tags.size(); itag++)
+            g_tags.at(itag)->removeFrame(f, itag==(g_tags.size()-1)?destroy:false);
+      } else
+         t->removeFrame(f, destroy);
+   }
+}
+
 
 Client* XScreen::findClient(Window win) {
    Client* client=NULL;

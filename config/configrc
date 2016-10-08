@@ -11,8 +11,9 @@ border_width = 3
 #               focus   unfocus urgent  marked  fixed
 border_colour = #1793D0 #333333 #FF0000 #00FF00 #0000FF
 
-#      name     | geometry   | tag | layer  | managed
-RULE = lemonbar | 100x50+0+0 | 0   | bottom |false
+#      match attribute | tag | layer  | fixed | managed
+RULE = wmname:bar      |     | BOTTOM | false | false
+RULE = class:urxvt     | 2   |        | false | true
 
 #--- Key Bindings -----
 KEY = Mod4+q QUIT 0

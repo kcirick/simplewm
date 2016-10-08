@@ -9,7 +9,8 @@ Client::Client(XScreen* screen, Window win) : g_xscreen(screen), window(win) {
    
    initGeometry();
    
-   //XSelectInput(g_xscreen->getDisplay(), window, EnterWindowMask);
+   //XXX
+   //XSelectInput(g_xscreen->getDisplay(), window, EnterWindowMask|PropertyChangeMask);
 
    g_xscreen->initEWMHClient(window);
    g_xscreen->setEWMHDesktop(window, g_xscreen->getCurrentTagIndex());

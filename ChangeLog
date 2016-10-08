@@ -1,3 +1,12 @@
+2016-10-08
+	* WMCore: Improve handleUnmapEvent()
+	* WMCore: Add RandR event
+	* XScreen: Fix crash when fixed window is killed and try to switch tags
+	* Configuration: Start to implement rules
+	* Tag: Tag class doesn't depend on Configuration class
+	* Tag: Fix cycleFrame() and removeFrame() crashing when client with index=0 is killed
+	* README.md: Adding a screenshot
+
 2016-10-03
 	* WMCore: Remove MappingNotifyEvent
 	* WMCore: Improve efficiency in event handlers

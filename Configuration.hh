@@ -23,6 +23,7 @@ class Configuration {
 
       inline vector<KeyMap*> getKeymap() { return key_bindings; }
       inline vector<MouseMap*> getMousemap() { return mouse_bindings; }
+      inline vector<Rule*> getRules() { return rules; }
 
    private:
       int n_tags;
@@ -33,6 +34,7 @@ class Configuration {
 
       vector <KeyMap*> key_bindings;
       vector <MouseMap*> mouse_bindings;
+      vector <Rule*> rules;
 };
 
 #endif
