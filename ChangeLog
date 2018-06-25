@@ -1,3 +1,8 @@
+2018-06-25
+	* Globals.hh: Adding <numeric> header to fix compilation error
+	* Main: change Spawn message from INFO level to DEBUG level
+	* Tag: Fix bug where frame index is negative when frame was inserted from another tag
+
 2016-10-08
 	* WMCore: Improve handleUnmapEvent()
 	* WMCore: Add RandR event

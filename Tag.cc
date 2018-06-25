@@ -30,7 +30,7 @@ void Tag::addWindow(Window win){
 void Tag::updateTag(){
    if(frame_list.size()==0) return;
 
-   //say(DEBUG, "===> updateTag: nframes = "+to_string(frame_list.size())+" - current = "+to_string(iCurFrame));
+   say(DEBUG, "===> updateTag: nframes = "+to_string(frame_list.size())+" - current = "+to_string(iCurFrame));
    for(unsigned int i=0; i<frame_list.size(); i++)
       if(frame_list.at(i)->isIconified())
          XUnmapWindow(g_xscreen->getDisplay(), frame_list.at(i)->getFrameWindow());
@@ -186,4 +186,5 @@ void Tag::insertFrame(Frame* frame) {
 
    // add frame
    frame_list.push_back(frame);
+   if(iCurFrame<0) iCurFrame=0;
 }

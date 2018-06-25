@@ -210,6 +210,7 @@ void Frame::send_config() {
 }
 
 void Frame::raiseFrame() {
+   say(DEBUG, "===> raiseFrame: client_list = "+to_string(client_list.size())+" - current = "+to_string(iVisibleClient));
    XRaiseWindow(g_xscreen->getDisplay(), frame);
    g_xscreen->setInputFocus(client_list.at(iVisibleClient)->getWindow());
    g_xscreen -> setEWMHActiveWindow(client_list.at(iVisibleClient)->getWindow());

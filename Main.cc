@@ -25,7 +25,7 @@ void spawn(string cmd) {
    char *sh = NULL;
    if(!(sh=getenv("SHELL"))) sh = (char *)"/bin/sh";
    
-   say(INFO, "Spawn "+cmd);
+   say(DEBUG, "Spawn "+cmd);
    pid_t pid;
    if((pid=fork())==0) {
       setsid();

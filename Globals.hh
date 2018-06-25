@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <numeric>
 #include <string>
 #include <X11/X.h>
 #include <X11/Xlib.h>
