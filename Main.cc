@@ -74,6 +74,8 @@ int main(int argc, char **argv) {
    WMCore *wmcore = new WMCore();
    wmcore -> read_config(config_file);
    wmcore -> setup();
+
+   // Main loop
    wmcore -> event_loop();
 
    // Cleanup

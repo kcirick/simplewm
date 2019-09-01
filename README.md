@@ -32,6 +32,9 @@ v0.2
 
 ## To do / Known issues:
 
+  - BUG: Cannot set input on certain WINE applications
+  - BUG: Cannot set Maximized EMWH status
+  - BUG: Random crashes, sources unknown
   - Code clean up
   - Implement EWMH properties
   - Implement rules
