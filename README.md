@@ -24,7 +24,10 @@ v0.2
 
 ## Version Log
 
-  - 0.2 (Work in progress)
+  - 0.3 (Work in progress)
+   - Goal: Simplify code in order to minimize potential bugs. Remove features that complicates code structures
+   - Remove window groups
+  - 0.2 (2019-09-01) (<a href="https://github.com/kcirick/simplewm/archive/v0.2.zip">download .zip</a>)
    - Goal: Code clean up and maximize efficiency
    - Removed root menu to simplify things. There are other external tools that can be used
   - 0.1 (2016-09-08) (<a href="https://github.com/kcirick/simplewm/archive/v0.1.zip">download .zip</a>)

@@ -12,8 +12,8 @@ border_width = 3
 border_colour = #1793D0 #333333 #FF0000 #00FF00 #0000FF
 
 #      match attribute | tag | layer  | fixed | managed
-RULE = wmname:bar      |     | BOTTOM | false | false
-RULE = class:urxvt     | 2   |        | false | true
+#RULE = wmname:bar      |     | BOTTOM | false | false
+#RULE = class:urxvt     | 2   |        | false | true
 
 #--- Key Bindings -----
 KEY = Mod4+q QUIT 0

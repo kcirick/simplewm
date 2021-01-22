@@ -109,6 +109,8 @@ void Configuration::loadConfig(string filename){
             
             mouse_bindings.push_back(new MouseMap(mod, button, this_context, string(args)));
          } // end MOUSE
+         
+         /*
          if(id == "RULE"){
             string attr_name = trimString(getToken(value, '|'));
             string attribute = getToken(attr_name, ':');
@@ -131,7 +133,7 @@ void Configuration::loadConfig(string filename){
                " :: "+to_string(bfixed)+" :: "+to_string(bmanaged));
 
             rules.push_back(new Rule(attribute, attr_name, itag, ilayer, bfixed, bmanaged)); 
-         }
+         }*/
       }
       configfile.close();
    }
