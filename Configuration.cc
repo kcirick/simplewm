@@ -34,15 +34,16 @@ void Configuration::loadConfig(string filename){
          string value = trimString(line);
 
          if(id == "n_tags")  n_tags = stoi(value);
+         if(id == "tag_names") {
+            for(int i=0; i<n_tags; i++)
+               tag_names.push_back(getToken(value, ';'));
+         }
          if(id == "border_width")  border_width = stoi(value);
          if(id == "border_colour") {
             for(unsigned int i=0; i<NBORDERCOL; i++)
                border_colour[i] = getToken(value, ' ');
          }
-         if(id == "tag_names") {
-            for(int i=0; i<n_tags; i++)
-               tag_names.push_back(getToken(value, ';'));
-         }
+         if(id == "sloppy_focus") sloppy_focus = value=="true" ? true : false; 
          if(id == "KEY") {
             string binding = getToken(value, ' ');
             string function = getToken(value, ' ');
@@ -106,34 +107,11 @@ void Configuration::loadConfig(string filename){
             int this_context = -1;
                  if(context == "ROOT")    this_context = CONTEXT_ROOT;
             else if(context == "FRAME")   this_context = CONTEXT_FRAME;
+            else if(context == "CLIENT")  this_context = CONTEXT_CLIENT;
             
             mouse_bindings.push_back(new MouseMap(mod, button, this_context, string(args)));
          } // end MOUSE
          
-         /*
-         if(id == "RULE"){
-            string attr_name = trimString(getToken(value, '|'));
-            string attribute = getToken(attr_name, ':');
-
-            string tag        = trimString(getToken(value, '|'));
-            int itag = tag.size() ? stoi(tag) : -1;
-            
-            string layer      = trimString(getToken(value, '|'));
-            int ilayer = -1;
-                 if(layer == "BOTTOM") ilayer = BOTTOM;
-            else if(layer == "TOP")    ilayer = TOP;
-
-            string fixed      = trimString(getToken(value, '|'));
-            bool bfixed = fixed=="true" ? true : false;
-
-            string managed    = trimString(value);
-            bool bmanaged = managed=="false" ? false : true;
-
-            say(DEBUG, "RULE :: "+attribute+" :: "+attr_name+" :: "+to_string(itag)+" :: "+to_string(ilayer)+
-               " :: "+to_string(bfixed)+" :: "+to_string(bmanaged));
-
-            rules.push_back(new Rule(attribute, attr_name, itag, ilayer, bfixed, bmanaged)); 
-         }*/
       }
       configfile.close();
    }

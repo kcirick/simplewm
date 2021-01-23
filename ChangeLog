@@ -1,3 +1,8 @@
+2021-01-22
+	* WMCore: Remove rules
+	* Frame: Remove Frame class. Just a part of Client now
+	* XScreen: _NET_DESKTOP_NAMES returns array instead of flat string
+
 2018-06-25
 	* Globals.hh: Adding <numeric> header to fix compilation error
 	* Main: change Spawn message from INFO level to DEBUG level

@@ -7,7 +7,6 @@
 #include "Configuration.hh"
 #include "XScreen.hh"
 #include "Client.hh"
-#include "Frame.hh"
 #include "Tag.hh"
 
 bool ignore_xerror = false;
@@ -172,10 +171,22 @@ void XScreen::initHeads() {
 
 void XScreen::initTags() {
    g_tags.clear();
-
+   
    current_tag = 0; 
    for(int i=0; i<g_config -> getNTags(); i++)
       g_tags.push_back(new Tag(this, i));
+
+   // Set EWMH values
+   vector<string> names = g_config->getTagNamesAll();
+   vector<const char*> names_cstr;
+   names_cstr.reserve(names.size());
+   for (const auto& s : names )
+      names_cstr.push_back(s.c_str());
+
+   XTextProperty text_prop;
+   Xutf8TextListToTextProperty(g_display, (char**) names_cstr.data(), names_cstr.size(), XUTF8StringStyle, &text_prop);
+   XSetTextProperty(g_display, g_root, &text_prop, g_atoms[NET_DESKTOP_NAMES]);
+   XFree(text_prop.value);
 }
 
 unsigned int XScreen::getMaskFromKeycode(KeyCode keycode) {
@@ -245,7 +256,6 @@ void XScreen::initEWMHProperties(){
 	unsigned long workarea[4] = {
 		(unsigned long)g_screen_geom.x, (unsigned long)g_screen_geom.y,
 		g_screen_geom.width, g_screen_geom.height};
-   string tag_names = g_config -> getTagNamesAll();
 
 	XChangeProperty(g_display, g_root, g_atoms[NET_SUPPORTED], XA_ATOM, 32, 
          PropModeReplace, (unsigned char *)&g_atoms, EWMH_ACTION_CLOSE+1);
@@ -260,8 +270,6 @@ void XScreen::initEWMHProperties(){
          PropModeReplace, (unsigned char *)&workarea, 4);
 	XChangeProperty(g_display, g_root, g_atoms[NET_CURRENT_DESKTOP], XA_CARDINAL, 32, 
          PropModeReplace, (unsigned char *)&tag, 1);
-   XChangeProperty(g_display, g_root, g_atoms[NET_DESKTOP_NAMES], XA_STRING, 8,
-         PropModeReplace, (unsigned char *)tag_names.c_str(), tag_names.size()); 
 	XChangeProperty(g_display, g_root, g_atoms[NET_SUPPORTING_WM_CHECK], XA_WINDOW, 32, 
          PropModeReplace, (unsigned char *)&g_root, 1);
 }
@@ -368,12 +376,7 @@ void XScreen::addWindow(Window win){
 
    uint this_tag = current_tag;
 
-   // TODO rules go here
-   vector<Rule*> custom_rules = g_config -> getRules();
-   for(uint i=0; i<custom_rules.size(); i++){
-      say(DEBUG, "HERE");
-   }
-
+   /*
    // perhaps via rules
    if(name_str == "panel"){
       Atom stateAbove[1];
@@ -384,6 +387,7 @@ void XScreen::addWindow(Window win){
    else if(name_str == "bar") {
       XLowerWindow(g_display, win);
    }
+   */
 
    // Dont manage DESKTOP or DOCK type windows
    uint window_type = getWMWindowType(win);
@@ -406,19 +410,13 @@ void XScreen::removeWindow(Window win, bool destroy){
 
    Client *c = findClient(win);
    if(!c) return;
-   Frame  *f = t->findFrame(c->getFrame());
-   if(!f) return;
 
-   say(DEBUG, "---> Client and Frame found");
-   uint list_size = f->removeClient(c, true);
-   say(DEBUG, "---> List size = "+to_string(list_size));
-   if(list_size==0){
-      if(f->isFixed()){
-         for(uint itag=0; itag<g_tags.size(); itag++)
-            g_tags.at(itag)->removeFrame(f, itag==(g_tags.size()-1)?destroy:false);
-      } else
-         t->removeFrame(f, destroy);
-   }
+   say(DEBUG, "---> Client found");
+   if(c->isFixed()){
+      for(uint itag=0; itag<g_tags.size(); itag++)
+         g_tags.at(itag)->removeClient(c, itag==(g_tags.size()-1)?destroy:false);
+   } else
+   t->removeClient(c, destroy);
 }
 
 
@@ -450,37 +448,32 @@ void XScreen::updateTag(unsigned int itag){
    g_tags.at(itag) -> updateTag();
 }
 
-void XScreen::sendFrameToTag(Frame* frame, unsigned int target_tag){
+void XScreen::sendClientToTag(Client* client, unsigned int target_tag){
    Tag* old_tag = g_tags.at(current_tag);
    Tag* new_tag = g_tags.at(target_tag);
 
-   old_tag -> removeFrame(frame, false);
-   new_tag -> insertFrame(frame);
-
-   vector<Client*> clist = frame->getClientList();
-   for(uint i=0; i<clist.size(); i++)
-      setEWMHDesktop(clist.at(i)->getWindow(), target_tag);
+   old_tag -> removeClient(client, false);
+   new_tag -> insertClient(client);
 }
 
-void XScreen::fixFrame(Frame* frame){
-   say(DEBUG, "XScreen::fixFrame()");
-   if(!frame) return;
-   bool isFixed = frame->isFixed();
+void XScreen::fixClient(Client* client){
+   say(DEBUG, "XScreen::fixClient()");
+   if(!client) return;
+   
+   bool isFixed = client->isFixed();
    
    if(isFixed){
       for(unsigned int i=0; i<g_tags.size(); i++)
-         if(i!=current_tag) g_tags.at(i)->removeFrame(frame, false);
+         if(i!=current_tag) g_tags.at(i)->removeClient(client, false);
    } else {
       for(unsigned int i=0; i<g_tags.size(); i++)
-         if(i!=current_tag) g_tags.at(i)->insertFrame(frame);
+         if(i!=current_tag) g_tags.at(i)->insertClient(client);
    }
 
    // Update EWMH
-   vector<Client*> clist = frame->getClientList();
-   for(unsigned int i=0; i<clist.size(); i++)
-      setEWMHDesktop(clist.at(i)->getWindow(), current_tag);
+   setEWMHDesktop(client->getWindow(), current_tag);
 
-   frame->toggleFixed();
+   client->toggleFixed();
 }
 
 void XScreen::setWmState(Window win, ulong state){

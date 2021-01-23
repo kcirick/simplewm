@@ -2,7 +2,7 @@
 #define WMCORE_HH
 
 class Configuration;
-class Frame;
+class Client;
 class XScreen;
 
 class WMCore {
@@ -27,7 +27,7 @@ class WMCore {
       void scanWindows();
 
       void key_function(int, string, KeySym);
-      void mouse_function(Frame *, string, int);
+      void mouse_function(Client *, string, int);
 
       //--- Event handlers -----
       void handleKeyEvent(XKeyEvent *);

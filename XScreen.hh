@@ -9,7 +9,6 @@
 #define EWMH_WINDOW_TYPE_NOTIFICATION  (1<<5)
 
 class Tag;
-class Frame;
 class Client;
 
 class Head {
@@ -51,6 +50,7 @@ class XScreen {
       inline unsigned int getHeight() { return g_screen_geom.height; }
 
       inline unsigned int getBorderWidth() { return g_config->getBorderWidth(); }
+      inline bool isSloppyFocus() { return g_config->isSloppyFocus(); }
 
       inline void setInputFocus(Window w) {
          XSetInputFocus(g_display, w, RevertToPointerRoot, CurrentTime);
@@ -87,7 +87,7 @@ class XScreen {
       inline Tag* getCurrentTag() { return g_tags.at(current_tag); }
       void setCurrentTag(uint);
 
-      void sendFrameToTag(Frame*, unsigned int);
+      void sendClientToTag(Client*, unsigned int);
 
       //--- Tag functions -----
       void updateTag(uint);
@@ -103,7 +103,7 @@ class XScreen {
          }
       }
 
-      void fixFrame(Frame*);
+      void fixClient(Client*);
 
       void addWindow(Window);
       void removeWindow(Window, bool);

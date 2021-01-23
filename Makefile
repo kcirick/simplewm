@@ -19,19 +19,19 @@ CRESET   = "\\033[0m"
 all: $(TARGET) 
 
 %.o: %.cc
-	@echo " [ $(CGREEN)CC$(CRESET) ] $< -> $@"
+	@echo -e " [ $(CGREEN)CC$(CRESET) ] $< -> $@"
 	@$(CC) $(MY_CFLAGS) -o $@ -c $<
 
 $(OBJECTS): $(HEADERS)
 
 $(TARGET): $(OBJECTS)
-	@echo " [ $(CPURPLE)LD$(CRESET) ] $(TARGET)"
+	@echo -e " [ $(CPURPLE)LD$(CRESET) ] $(TARGET)"
 	@$(CC) -o $@ $(OBJECTS) $(MY_LFLAGS)
 
 clean:
-	@echo " [ $(CRED)RM$(CRESET) ] $(TARGET)"
+	@echo -e " [ $(CRED)RM$(CRESET) ] $(TARGET)"
 	@rm -f $(TARGET)
-	@echo " [ $(CRED)RM$(CRESET) ] $(OBJECTS)"
+	@echo -e " [ $(CRED)RM$(CRESET) ] $(OBJECTS)"
 	@rm -f $(OBJECTS)
 	@echo
 

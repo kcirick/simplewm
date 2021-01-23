@@ -58,21 +58,6 @@ class MouseMap {
       string argument;
 };
 
-class Rule {
-   public:
-      Rule(string a, string n, uint t, uint l, bool f, bool m) :
-         attribute(a), attr_name(n), tag(t), layer(l), fixed(f), managed(m) { }
-      ~Rule() { }
-
-      string attribute;
-      string attr_name;
-      //Geometry geometry;
-      uint tag;
-      uint layer;
-      bool fixed;
-      bool managed;
-};
-
 //--- enums -----
 enum MessageType { DEBUG, INFO, WARNING, ERROR, NMSG };
 
@@ -126,7 +111,7 @@ enum AtomName {
 
 enum KeyFunctions { SPAWN, QUIT, TAG, CLIENT, NFUNC };
 
-enum MouseContext { CONTEXT_ROOT, CONTEXT_FRAME, NCONTEXT };
+enum MouseContext { CONTEXT_ROOT, CONTEXT_CLIENT, CONTEXT_FRAME, NCONTEXT };
 
 enum BorderColours { FOCUSED, UNFOCUSED, URGENT, MARKED, FIXED, NBORDERCOL };
 

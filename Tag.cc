@@ -7,7 +7,6 @@
 #include "Configuration.hh"
 #include "XScreen.hh"
 #include "Client.hh"
-#include "Frame.hh"
 #include "Tag.hh"
 
 //------------------------------------------------------------------------
@@ -15,75 +14,75 @@ void Tag::addWindow(Window win){
    say(DEBUG, "Tag::addWindow()");
 
    Client* client = new Client(g_xscreen, win);
-   g_xscreen->insertClient(client);
-   
-   Frame* frame = new Frame(g_xscreen, client);
-   frame_list.push_back(frame);
-   iCurFrame = frame_list.size()-1;
 
-   client->reparent(frame->getFrameWindow());
+   g_xscreen->insertClient(client);
+
+   client_list.push_back(client);
+   iCurClient = client_list.size()-1;   
 
    g_xscreen->setEWMHClientList();
    g_xscreen->setEWMHActiveWindow(win);
 }
 
 void Tag::updateTag(){
-   if(frame_list.size()==0) return;
+   if(client_list.size()==0) return;
 
-   say(DEBUG, "===> updateTag: nframes = "+to_string(frame_list.size())+" - current = "+to_string(iCurFrame));
-   for(unsigned int i=0; i<frame_list.size(); i++)
-      if(frame_list.at(i)->isIconified())
-         XUnmapWindow(g_xscreen->getDisplay(), frame_list.at(i)->getFrameWindow());
+   say(DEBUG, "===> updateTag: nframes = "+to_string(client_list.size())+" - current = "+to_string(iCurClient));
+   for(unsigned int i=0; i<client_list.size(); i++)
+      if(client_list.at(i)->isIconified())
+         XUnmapWindow(g_xscreen->getDisplay(), client_list.at(i)->getFrame());
       else {
-         XMapWindow(g_xscreen->getDisplay(), frame_list.at(i)->getFrameWindow());
-         frame_list.at(i) -> refreshFrame((int)i==iCurFrame);
+         XMapWindow(g_xscreen->getDisplay(), client_list.at(i)->getFrame());
+         client_list.at(i) -> refreshFrame((int)i==iCurClient);
       }
 }
 
 void Tag::showTag(){
-   for(unsigned int i=0; i<frame_list.size(); i++){
-      if(frame_list.at(i)->isIconified())
-         XUnmapWindow(g_xscreen->getDisplay(), frame_list.at(i)->getFrameWindow());
+   for(unsigned int i=0; i<client_list.size(); i++){
+      if(client_list.at(i)->isIconified())
+         XUnmapWindow(g_xscreen->getDisplay(), client_list.at(i)->getFrame());
       else 
-         XMapWindow(g_xscreen->getDisplay(), frame_list.at(i)->getFrameWindow());
+         XMapWindow(g_xscreen->getDisplay(), client_list.at(i)->getFrame());
    }
 }
 
 void Tag::hideTag(){
-   for(unsigned int i=0; i<frame_list.size(); i++)
-      if(!frame_list.at(i)->isFixed())
-         XUnmapWindow(g_xscreen->getDisplay(), frame_list.at(i)->getFrameWindow());
+   for(unsigned int i=0; i<client_list.size(); i++)
+      if(!client_list.at(i)->isFixed())
+         XUnmapWindow(g_xscreen->getDisplay(), client_list.at(i)->getFrame());
 }
 
-void Tag::cycleFrame(){
+void Tag::cycleClient(){
+
+   say(DEBUG, "Tag::cycleClient()");
 
    // do nothing if there are no frames to cycle
-   if(iCurFrame<0) return;
+   if(iCurClient<0) return;
 
-   unsigned int list_size=frame_list.size();
-   Frame* current_frame = frame_list.at(iCurFrame);
+   unsigned int list_size=client_list.size();
+   Client* current = client_list.at(iCurClient);
 
    XGrabKeyboard(g_xscreen->getDisplay(), g_xscreen->getRoot(), True, GrabModeAsync, GrabModeAsync, CurrentTime);
 
 	XEvent ev;
 	for (;;) {
-      g_xscreen->drawOutline(current_frame->getFrameGeometry());
+      g_xscreen->drawOutline(current->getFrameGeometry());
 		XMaskEvent(g_xscreen->getDisplay(), KeyPressMask|KeyReleaseMask, &ev);
       KeySym keysym = XkbKeycodeToKeysym(g_xscreen->getDisplay(), ev.xkey.keycode, 0, 0);
-      g_xscreen->drawOutline(current_frame->getFrameGeometry());
+      g_xscreen->drawOutline(current->getFrameGeometry());
 
 		switch (ev.type) {
 			case KeyPress:
-            if(iCurFrame<(int)list_size-1)   iCurFrame++;
-            else                             iCurFrame = 0;
-            current_frame = frame_list.at(iCurFrame);
+            if(iCurClient<(int)list_size-1)  iCurClient++;
+            else                             iCurClient = 0;
+            current = client_list.at(iCurClient);
 				break;
 			case KeyRelease:
             if(keysym!=XK_Tab){
-               Client* vc = frame_list.at(iCurFrame)->getClientVisible();
-               if(current_frame->isIconified()){
-                  current_frame->setIconified(false);
-                  XMapWindow(g_xscreen->getDisplay(), current_frame->getFrameWindow());
+               Client* vc = client_list.at(iCurClient);
+               if(current->isIconified()){
+                  current->setIconified(false);
+                  XMapWindow(g_xscreen->getDisplay(), current->getFrame());
                }
                XRaiseWindow(g_xscreen->getDisplay(), vc->getFrame());
                XUngrabKeyboard(g_xscreen->getDisplay(), CurrentTime);               
@@ -97,94 +96,38 @@ void Tag::cycleFrame(){
 	}
 }
 
-void Tag::groupMarkedFrames(Frame* root_frame) {
-   say(DEBUG, "Tag::groupMarkedFrames()");
+void Tag::removeClient(Client* client, bool delete_client){
+   say(DEBUG, "Tag::removeClient");
 
-   // Do nothing if visible client in the frame is not marked
-   if(!root_frame->isMarked()) return;
+   say(DEBUG, to_string(client_list.size()));
 
-   for(unsigned int i=0; i<frame_list.size(); i++){
-      Frame* f = frame_list.at(i);
-      say(DEBUG, "FRAME WINDOW = "+to_string(f->getFrameWindow()));
-
-      if(!f->isMarked()) continue;
-      
-      if(f == root_frame){
-         f->toggleMarked();
-         iCurFrame = i;
-         continue; // don't add duplicate 
-      }
-
-      vector<Client*> clist = f->getClientList();
-
-      for(unsigned int ic=0; ic<clist.size(); ic++){
-         Client* c = clist.at(ic);
-         c->reparent(root_frame->getFrameWindow());
-         root_frame->addToClientList(c);
-
-         f->removeClient(c, false);
-
-         // add top bar for each client added
-         Window topbar = XCreateSimpleWindow(g_xscreen->getDisplay(), root_frame->getFrameWindow(),
-            0, 0, 10, 10, 0,  // we don't know the size yet
-            (g_xscreen->getBorderColour(UNFOCUSED)).pixel, (g_xscreen->getBorderColour(UNFOCUSED)).pixel);
-
-         XMapWindow(g_xscreen->getDisplay(), topbar);
-         root_frame->addToTopbarList(topbar);
-      }
-      removeFrame(f, true);
-      i--;
-   }
-
-   say(DEBUG, "groupMarkedClient() finish");
-}
-
-void Tag::detachFrame(Frame* root_frame){
-   say(DEBUG, "Tag::detachFrame()");
-
-   // do nothing if there is only one client in the frame
-   if(root_frame->getNClients()==1 ) return;
-
-   Client *this_client = root_frame -> getClientVisible();
-   g_xscreen->removeClient(this_client);
-   Window this_window = this_client->getWindow();
-   root_frame->removeClient(this_client, true);
-
-   // This will create a new frame and client
-   addWindow(this_window);
-}
-
-void Tag::removeFrame(Frame* frame, bool delete_frame){
-   say(DEBUG, "Tag::removeFrame()");
-
-   //vector<Client*> clist = frame -> getClientList();
-
-   XUnmapWindow(g_xscreen->getDisplay(), frame->getFrameWindow());
    bool found = false;
-   for(unsigned int i=0; i<frame_list.size(); i++){
-      if(frame_list.at(i) == frame){ 
-         frame_list.erase(frame_list.begin()+i);
-         iCurFrame = (i>0) ? i-1 : frame_list.size()-1;
+   for(uint i=0; i<client_list.size(); i++){
+      if(client_list.at(i) == client){
          found = true;
+         client_list.erase(client_list.begin()+i);
+         iCurClient--;
       }
    }
    if(!found) return;
 
-   if(delete_frame) delete frame;
+   if(delete_client){
+      g_xscreen->removeClient(client);
+      delete client;
+   }
 
-   say(DEBUG, "END");
+   g_xscreen->setEWMHClientList();
+   return;
 }
 
-void Tag::insertFrame(Frame* frame) {
-   say(DEBUG, "Tag::insertFrame()");
+void Tag::insertClient(Client* client){
+   say(DEBUG, "Tag::insertClient()");
 
    // add clients to client_list
-   vector<Client*> clist = frame->getClientList();
-   for(unsigned int i=0; i<clist.size(); i++)
-      g_xscreen->setEWMHDesktop(clist.at(i)->getWindow(), tag_id);
-      //g_xscreen->insertClient(clist.at(i));
+   g_xscreen->setEWMHDesktop(client->getWindow(), tag_id);
 
    // add frame
-   frame_list.push_back(frame);
-   if(iCurFrame<0) iCurFrame=0;
+   client_list.push_back(client);
+   if(iCurClient<0) iCurClient=0;
 }
+

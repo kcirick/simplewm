@@ -7,13 +7,10 @@ n_tags = 5
 tag_names = One;Two;Three;Four;Five
 
 border_width = 3
+sloppy_focus = true
 
 #               focus   unfocus urgent  marked  fixed
 border_colour = #1793D0 #333333 #FF0000 #00FF00 #0000FF
-
-#      match attribute | tag | layer  | fixed | managed
-#RULE = wmname:bar      |     | BOTTOM | false | false
-#RULE = class:urxvt     | 2   |        | false | true
 
 #--- Key Bindings -----
 KEY = Mod4+q QUIT 0
@@ -21,11 +18,7 @@ KEY = Mod4+k CLIENT kill
 KEY = Mod4+f CLIENT fix
 KEY = Mod4+i CLIENT iconify
 KEY = Mod4+m CLIENT mark
-KEY = Mod4+g CLIENT group
-KEY = Mod4+d CLIENT detach
-KEY = Mod4+Tab CLIENT cycle_frame
-KEY = Mod4+Left CLIENT previous_win
-KEY = Mod4+Right CLIENT next_win
+KEY = Mod4+Tab CLIENT cycle
 #--- Spawns
 KEY = Mod4+Return SPAWN urxvt
 #--- Tags
@@ -50,7 +43,7 @@ KEY = Mod1+Shift+Up CLIENT resize
 KEY = Mod1+Shift+Down CLIENT resize
 
 #--- Mouse Bindings -----
-MOUSE = Mod4+Button1 FRAME move
-MOUSE = Mod4+Button3 FRAME resize
+MOUSE = Mod4+Button1 CLIENT move
+MOUSE = Mod4+Button3 CLIENT resize
 MOUSE = Button1 ROOT test
 
