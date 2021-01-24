@@ -106,7 +106,7 @@ class XScreen {
       void fixClient(Client*);
 
       void addWindow(Window);
-      void removeWindow(Window, bool);
+      void removeWindow(Window);
 
       inline bool hasRandr(int* randr_base) { 
          *randr_base = randr_event_base; 

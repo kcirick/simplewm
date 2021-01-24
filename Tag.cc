@@ -27,13 +27,13 @@ void Tag::addWindow(Window win){
 void Tag::updateTag(){
    if(client_list.size()==0) return;
 
-   say(DEBUG, "===> updateTag: nframes = "+to_string(client_list.size())+" - current = "+to_string(iCurClient));
+   say(DEBUG, "===> updateTag: nclients = "+to_string(client_list.size())+" - current = "+to_string(iCurClient));
    for(unsigned int i=0; i<client_list.size(); i++)
       if(client_list.at(i)->isIconified())
          XUnmapWindow(g_xscreen->getDisplay(), client_list.at(i)->getFrame());
       else {
          XMapWindow(g_xscreen->getDisplay(), client_list.at(i)->getFrame());
-         client_list.at(i) -> refreshFrame((int)i==iCurClient);
+         client_list.at(i) -> refreshFrame((int)i==iCurClient, false);
       }
 }
 
@@ -98,8 +98,6 @@ void Tag::cycleClient(){
 
 void Tag::removeClient(Client* client, bool delete_client){
    say(DEBUG, "Tag::removeClient");
-
-   say(DEBUG, to_string(client_list.size()));
 
    bool found = false;
    for(uint i=0; i<client_list.size(); i++){

@@ -24,7 +24,7 @@ class Client {
       inline void setGeometry(Geometry this_geom) { geom = this_geom; }
 
       //void reparent(Window);
-      void refreshFrame(bool);
+      void refreshFrame(bool, bool);
 
       void send_config();
 

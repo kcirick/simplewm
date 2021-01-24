@@ -78,7 +78,6 @@ int handle_xerror(Display *display, XErrorEvent *e) {
 
 //--- Constructor and destructor -----------------------------------------
 XScreen::XScreen(Display *display, Configuration *config) : g_display(display), g_config(config) {
-   say(DEBUG, "XScreen constructor");
 
    XSetErrorHandler(handle_xerror);
 
@@ -405,7 +404,7 @@ void XScreen::addWindow(Window win){
    g_tags.at(this_tag)->addWindow(win);
 }
 
-void XScreen::removeWindow(Window win, bool destroy){
+void XScreen::removeWindow(Window win){
 	Tag* t = g_tags.at(current_tag);
 
    Client *c = findClient(win);
@@ -414,9 +413,9 @@ void XScreen::removeWindow(Window win, bool destroy){
    say(DEBUG, "---> Client found");
    if(c->isFixed()){
       for(uint itag=0; itag<g_tags.size(); itag++)
-         g_tags.at(itag)->removeClient(c, itag==(g_tags.size()-1)?destroy:false);
+         g_tags.at(itag)->removeClient(c, itag==(g_tags.size()-1));
    } else
-   t->removeClient(c, destroy);
+   t->removeClient(c, true);
 }
 
 

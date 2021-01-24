@@ -8,7 +8,6 @@
 #include "Configuration.hh"
 #include "XScreen.hh"
 #include "Client.hh"
-//#include "Frame.hh"
 #include "Tag.hh"
 #include "WMCore.hh"
 
@@ -207,7 +206,6 @@ void WMCore::handleButtonPressEvent(XButtonEvent *ev){
    }
    else if((client = tag->findClientWithFrame(ev->window))){
       say(DEBUG, "CONTEXT_FRAME");
-      // CONTEXT_FRAME
       XRaiseWindow(g_xscreen->getDisplay(), client->getFrame());
       tag->setCurrentClient(client);
       for(uint i=0; i<mousemap.size(); i++)
@@ -261,16 +259,15 @@ void WMCore::handleUnmapEvent(XUnmapEvent *ev) {
 
    g_xscreen->unsetProperty(ev->window, STATE);
    g_xscreen->unsetProperty(ev->window, NET_WM_DESKTOP);
-   say(DEBUG, "-->Here<--");
-   g_xscreen->removeWindow(ev->window, true);
+   //say(DEBUG, "-->Here<--");
+   //g_xscreen->removeWindow(ev->window);
 }
 
 void WMCore::handleDestroyWindowEvent(XDestroyWindowEvent *ev){
    say(DEBUG, "handleDestroyWindowEvent()");
     
-   g_xscreen->removeWindow(ev->window, true);
-   //g_xscreen->updateCurrentTag();
-   
+   g_xscreen->removeWindow(ev->window);
+   g_xscreen->updateCurrentTag();
 }
 
 void WMCore::handleEnterNotify(XCrossingEvent *ev){
@@ -291,7 +288,6 @@ void WMCore::handleEnterNotify(XCrossingEvent *ev){
 void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){
    say(DEBUG, "handleConfigureRequestEvent()");
 
-   //Tag *tag = g_xscreen->getCurrentTag();
 	Client *c = g_xscreen->findClient(ev->window);
 
 	if (c) {
@@ -304,9 +300,7 @@ void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){
       if(value_mask&CWWidth)  geom.width = ev->width + 2*g_config->getBorderWidth();
       if(value_mask&CWHeight) geom.height = ev->height + 2*g_config->getBorderWidth();
       c->setGeometry(geom);
-
-      //tag->setCurrentClient(c);
-      g_xscreen->updateCurrentTag();
+      c->refreshFrame(false, true);
 	} 
    else{
       XWindowChanges wc;
@@ -329,26 +323,37 @@ void WMCore::handleClientMessageEvent(XClientMessageEvent *ev){
    if(ev->message_type == g_xscreen->getAtom(NET_CURRENT_DESKTOP)) {
       say(DEBUG, "NET_CURRENT_DESKTOP");   
       g_xscreen->setCurrentTag(ev->data.l[0]);
+   } else if (ev->message_type == g_xscreen->getAtom(NET_ACTIVE_WINDOW)) {
+      // TODO
+      say(DEBUG, "NET_ACTIVE_WINDOW");
+   } else if (ev->message_type == g_xscreen->getAtom(STATE)) {
+      // TODO
+      say(DEBUG, "NET_WM_STATE");
+      
+      if ((Atom)ev->data.l[1] == g_xscreen->getAtom(STATE_FULLSCREEN) ||
+          (Atom)ev->data.l[2] == g_xscreen->getAtom(STATE_FULLSCREEN) ) {
+         say(DEBUG, "FULLSCREEN Request");
+      }
    }
 }
 
 void WMCore::handlePropertyEvent(XPropertyEvent *ev){
-   say(DEBUG, "handlePropertyEvent()");
+   //say(DEBUG, "handlePropertyEvent()");
 
    if(ev->atom == g_xscreen->getAtom(NET_WM_DESKTOP)){
-      say(DEBUG, "NET_WM_DESKTOP");
+      say(DEBUG, "Property Event: NET_WM_DESKTOP");
    }
    else if(ev->atom == g_xscreen->getAtom(NET_WM_STRUT)){
-      say(DEBUG, "NET_WM_STRUT");
+      say(DEBUG, "Property Event: NET_WM_STRUT");
    }
    else if(ev->atom == g_xscreen->getAtom(NET_WM_NAME) || ev->atom == XA_WM_NAME){
-      say(DEBUG, "NET_WM_NAME");
+      say(DEBUG, "Property Event: NET_WM_NAME");
    }
    else if(ev->atom == XA_WM_NORMAL_HINTS){
-      say(DEBUG, "NET_WM_NORMAL_HINTS");
+      say(DEBUG, "Property Event: NET_WM_NORMAL_HINTS");
    }
    else if(ev->atom == g_xscreen->getAtom(WM_HINTS)){
-      say(DEBUG, "WM_HINTS");
+      say(DEBUG, "Property Event: WM_HINTS");
    }
 }
 

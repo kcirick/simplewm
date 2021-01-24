@@ -30,7 +30,6 @@ void spawn(string cmd) {
    say(DEBUG, "Spawn "+cmd);
    pid_t pid = fork();
    if(pid==0) {
-      say(DEBUG, "--- Spawning ...");
       setsid();
       execl(sh, sh, "-c", cmd.c_str(), (char *)NULL);
    } 

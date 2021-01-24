@@ -7,6 +7,11 @@
 Client::Client(XScreen* screen, Window win) : g_xscreen(screen), window(win) { 
    say(DEBUG, "Client::Client() constructor");
    
+   iconified   = false;
+   marked      = false;
+   urgent      = false;
+   fixed       = false;
+
    initGeometry();
    
    createFrame();
@@ -20,8 +25,7 @@ Client::Client(XScreen* screen, Window win) : g_xscreen(screen), window(win) {
    g_xscreen->setEWMHDesktop(window, g_xscreen->getCurrentTagIndex());
 }
 
-Client::~Client(){ 
-}
+Client::~Client(){ }
 
 //------------------------------------------------------------------------
 void Client::initGeometry(){
@@ -50,10 +54,6 @@ void Client::initGeometry(){
 
 void Client::createFrame() {
    say(DEBUG, "Client::createFrame()");
-   iconified      = false;
-   marked         = false;
-   urgent         = false;
-   fixed          = false;
 
    int border_width = g_xscreen->getBorderWidth();
    unsigned int frame_pixel = (g_xscreen->getBorderColour(UNFOCUSED)).pixel;
@@ -81,20 +81,23 @@ void Client::createFrame() {
    XMapWindow(g_xscreen->getDisplay(), window);
 }
 
-void Client::refreshFrame(bool current) {
+void Client::refreshFrame(bool current, bool update_fgeom) {
    Display *display = g_xscreen->getDisplay();
    int border_width = g_xscreen->getBorderWidth();
 
-   // updateFrameGeometry;
-   fgeom.x = geom.x - border_width;
-   fgeom.y = geom.y - border_width;
-   fgeom.width = geom.width + 2*border_width;
-   fgeom.height = geom.height + 2*border_width;
+   if(update_fgeom){
+      // updateFrameGeometry;
+      fgeom.x = geom.x - border_width;
+      fgeom.y = geom.y - border_width;
+      fgeom.width = geom.width + 2*border_width;
+      fgeom.height = geom.height + 2*border_width;
 
-   XMoveResizeWindow(display, frame, fgeom.x, fgeom.y, fgeom.width, fgeom.height);
-   XMoveResizeWindow(display, window, border_width, border_width, geom.width, geom.height);
+      XMoveResizeWindow(display, frame, fgeom.x, fgeom.y, fgeom.width, fgeom.height);
+      XMoveResizeWindow(display, window, border_width, border_width, geom.width, geom.height);
 
-   send_config();
+      // not necessary?
+      //send_config();
+   }
 
    XColor frame_colour = g_xscreen->getBorderColour(UNFOCUSED);
    if(marked)  frame_colour = g_xscreen->getBorderColour(MARKED);
@@ -154,7 +157,7 @@ void Client::kill(bool force_kill) {
       XSendEvent(g_xscreen->getDisplay(), window, False, NoEventMask, &ev);
    } else
       XKillClient(g_xscreen->getDisplay(), window);
-   
+
 }
 
 void Client::dragMove() {
@@ -171,7 +174,7 @@ void Client::dragMove() {
 	int old_cx = geom.x;
 	int old_cy = geom.y;
 
-   refreshFrame(true);
+   refreshFrame(true, false);
    
    Window dw;
 	int x, y, di;
@@ -190,7 +193,7 @@ void Client::dragMove() {
 				break;
 			case ButtonRelease:
             XUngrabPointer(display, CurrentTime);
-            refreshFrame(true);
+            refreshFrame(true, true);
 				return;
 			default: break;
 		}
@@ -212,7 +215,7 @@ void Client::dragResize() {
 	int old_cx = fgeom.x;
 	int old_cy = fgeom.y;
 
-   refreshFrame(true);
+   refreshFrame(true, false);
 
 	XWarpPointer(display, None, frame, 0, 0, 0, 0, geom.width, geom.height);
 	for (;;) {
@@ -230,7 +233,7 @@ void Client::dragResize() {
 				XUngrabPointer(display, CurrentTime);
             geom.width  = fgeom.width - 2*border_width;
             geom.height = fgeom.height - 2*border_width;
-            refreshFrame(true);
+            refreshFrame(true, true);
 				return;
 			default: break;
 		}
