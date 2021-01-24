@@ -21,7 +21,6 @@ Client::Client(XScreen* screen, Window win) : g_xscreen(screen), window(win) {
 }
 
 Client::~Client(){ 
-   XDestroyWindow(g_xscreen->getDisplay(), frame);
 }
 
 //------------------------------------------------------------------------
@@ -238,3 +237,7 @@ void Client::dragResize() {
 	}
 }
 
+void Client::destroy_frame() {
+   XUnmapWindow(g_xscreen->getDisplay(), frame);
+   XDestroyWindow(g_xscreen->getDisplay(), frame);
+}

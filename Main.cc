@@ -5,6 +5,8 @@
 
 #include <iostream>
 #include <unistd.h>
+#include <signal.h>
+#include <sys/wait.h>
 
 #include "Globals.hh"
 #include "WMCore.hh"
@@ -26,11 +28,18 @@ void spawn(string cmd) {
    if(!(sh=getenv("SHELL"))) sh = (char *)"/bin/sh";
    
    say(DEBUG, "Spawn "+cmd);
-   pid_t pid;
-   if((pid=fork())==0) {
+   pid_t pid = fork();
+   if(pid==0) {
+      say(DEBUG, "--- Spawning ...");
       setsid();
       execl(sh, sh, "-c", cmd.c_str(), (char *)NULL);
-   }
+   } 
+}
+
+void sigchld(int unused) {
+   if(signal(SIGCHLD, sigchld) == SIG_ERR)
+      say(ERROR, "Can't install SIGCHLD handler!");
+   while(0 < waitpid(-1, NULL, WNOHANG));
 }
 
 string trimString(string str) {
@@ -73,6 +82,8 @@ int main(int argc, char **argv) {
    
    WMCore *wmcore = new WMCore();
    wmcore -> read_config(config_file);
+
+   sigchld(0);
    wmcore -> setup();
 
    // Main loop

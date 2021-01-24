@@ -112,6 +112,7 @@ void Tag::removeClient(Client* client, bool delete_client){
    if(!found) return;
 
    if(delete_client){
+      client->destroy_frame();
       g_xscreen->removeClient(client);
       delete client;
    }

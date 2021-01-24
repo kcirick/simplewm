@@ -33,6 +33,8 @@ class Client {
       void dragMove();
       void dragResize();
 
+      void destroy_frame();
+
       //bool isTransient() const { return transient_for_window != None; }
       //Client *getTransientForClient() const { return translient_for; }
       //Window getTransientForClientWindow() const { return transient_for_window; }

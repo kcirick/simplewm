@@ -152,9 +152,7 @@ void WMCore::key_function(int keyfn, string argument, KeySym key){
    
    //--- CLIENT -----
    if(keyfn==CLIENT){
-      // FIXME These need to be read from config file
-      int width_inc = 10;
-      int height_inc = 10;
+      int moveresize_step = g_config -> getMoveResizeStep();
 
       Tag* tag = g_xscreen->getCurrentTag();
       Client* client = tag->getCurrentClient();
@@ -166,18 +164,18 @@ void WMCore::key_function(int keyfn, string argument, KeySym key){
       if(client && argument=="kill") client -> kill(false);
       if(argument=="move"){
          Geometry g = client->getGeometry();
-              if(key==XK_Left)      g.x -= width_inc;
-         else if(key==XK_Right)     g.x += width_inc;
-         else if(key==XK_Up)        g.y -= height_inc;
-         else if(key==XK_Down)      g.y += height_inc;
+              if(key==XK_Left)      g.x -= moveresize_step;
+         else if(key==XK_Right)     g.x += moveresize_step;
+         else if(key==XK_Up)        g.y -= moveresize_step;
+         else if(key==XK_Down)      g.y += moveresize_step;
          client->setGeometry(g);
       }
       if(argument=="resize") {
          Geometry g = client->getGeometry();
-              if(key==XK_Left)      g.width -= width_inc;
-         else if(key==XK_Right)     g.width += width_inc;
-         else if(key==XK_Up)        g.height -= height_inc;
-         else if(key==XK_Down)      g.height += height_inc;
+              if(key==XK_Left)      g.width -= moveresize_step;
+         else if(key==XK_Right)     g.width += moveresize_step;
+         else if(key==XK_Up)        g.height -= moveresize_step;
+         else if(key==XK_Down)      g.height += moveresize_step;
          client->setGeometry(g);
       }
       if(argument=="send_to_tag"){
@@ -263,15 +261,16 @@ void WMCore::handleUnmapEvent(XUnmapEvent *ev) {
 
    g_xscreen->unsetProperty(ev->window, STATE);
    g_xscreen->unsetProperty(ev->window, NET_WM_DESKTOP);
-
-   g_xscreen->removeWindow(ev->window, false);
+   say(DEBUG, "-->Here<--");
+   g_xscreen->removeWindow(ev->window, true);
 }
 
 void WMCore::handleDestroyWindowEvent(XDestroyWindowEvent *ev){
    say(DEBUG, "handleDestroyWindowEvent()");
-   
+    
    g_xscreen->removeWindow(ev->window, true);
-   g_xscreen->updateCurrentTag();
+   //g_xscreen->updateCurrentTag();
+   
 }
 
 void WMCore::handleEnterNotify(XCrossingEvent *ev){

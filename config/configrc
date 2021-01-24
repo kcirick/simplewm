@@ -8,6 +8,7 @@ tag_names = One;Two;Three;Four;Five
 
 border_width = 3
 sloppy_focus = true
+moveresize_step = 10
 
 #               focus   unfocus urgent  marked  fixed
 border_colour = #1793D0 #333333 #FF0000 #00FF00 #0000FF

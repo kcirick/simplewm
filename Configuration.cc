@@ -10,6 +10,8 @@ Configuration::Configuration(){
    // Set default values
    n_tags = 4;
    border_width = 2;
+   sloppy_focus = false;
+   moveresize_step = 10;
 
    border_colour[FOCUSED]     == "#0000FF";
    border_colour[UNFOCUSED]   == "#333333";
@@ -44,6 +46,7 @@ void Configuration::loadConfig(string filename){
                border_colour[i] = getToken(value, ' ');
          }
          if(id == "sloppy_focus") sloppy_focus = value=="true" ? true : false; 
+         if(id == "moveresize_step") moveresize_step = stoi(value);
          if(id == "KEY") {
             string binding = getToken(value, ' ');
             string function = getToken(value, ' ');

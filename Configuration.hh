@@ -17,6 +17,7 @@ class Configuration {
 
       inline bool isSloppyFocus() { return sloppy_focus; }
 
+      inline int getMoveResizeStep() { return moveresize_step; }
       inline vector<KeyMap*> getKeymap() { return key_bindings; }
       inline vector<MouseMap*> getMousemap() { return mouse_bindings; }
 
@@ -25,6 +26,7 @@ class Configuration {
       vector<string> tag_names;
       int border_width;
       bool sloppy_focus;
+      int moveresize_step;
 
       string border_colour[NBORDERCOL];
 
