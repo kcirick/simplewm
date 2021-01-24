@@ -1,6 +1,6 @@
 # SimpleWM
 
-A simple window manager written to fit my specific needs, and also to teach myself the basics of window management. 
+A simple window manager with Xlib written to fit my specific needs, and also to teach myself the basics of window management. 
 
 ## Description
 
@@ -9,6 +9,7 @@ A simple window manager written to fit my specific needs, and also to teach myse
   - Features:
     - No frills (menu, titlebar, icons, pixmap themes, autostart etc...)
     - Text config file (default $HOME/.config/simplewm/configrc)
+    - Clients can be fixed (visible on all tags), iconified (i.e. hidden), or marked (no action yet)
 
 Usage:
 
@@ -26,6 +27,7 @@ v0.2
   - 0.3 (Work in progress)
     - Goal: Simplify code in order to minimize potential bugs. Remove features that complicates code structures
     - Remove window groups
+    - Remove Frame class (now part of Client class)
     - Remove rules
   - 0.2 (2019-09-01) (<a href="https://github.com/kcirick/simplewm/archive/v0.2.zip">download .zip</a>)
     - Goal: Code clean up and maximize efficiency
@@ -36,11 +38,12 @@ v0.2
 ## To do / Known issues:
 
   - BUG: Cannot set input on certain WINE applications
-  - BUG: Cannot set Maximized EMWH status
   - BUG: Random crashes, sources unknown
   - Code clean up
-  - Implement EWMH properties
-  - Implement rules
+  - Implement Maximized/Fullscreen EMWH request
+  - Implement group action on marked clients
+  - ~~Implement EWMH properties~~ (v0.2)
+  - ~~Implement rules~~ (removed v0.3)
   - ~~Implement window grouping~~ (v0.1)
   - ~~Implement fixed state for frames~~ (v0.1)
   - ~~Implement iconic state for frames~~ (v0.1)

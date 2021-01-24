@@ -168,6 +168,7 @@ void WMCore::key_function(int keyfn, string argument, KeySym key){
          else if(key==XK_Up)        g.y -= moveresize_step;
          else if(key==XK_Down)      g.y += moveresize_step;
          client->setGeometry(g);
+         client->refreshFrame(false, true);
       }
       if(argument=="resize") {
          Geometry g = client->getGeometry();
@@ -176,6 +177,7 @@ void WMCore::key_function(int keyfn, string argument, KeySym key){
          else if(key==XK_Up)        g.height -= moveresize_step;
          else if(key==XK_Down)      g.height += moveresize_step;
          client->setGeometry(g);
+         client->refreshFrame(false, true);
       }
       if(argument=="send_to_tag"){
          g_xscreen->sendClientToTag(client, key-XK_1);
