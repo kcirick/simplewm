@@ -25,6 +25,7 @@ class Client {
 
       //void reparent(Window);
       void refreshFrame(bool, bool);
+      void updateFrameGeometry();
 
       void send_config();
 

@@ -81,23 +81,28 @@ void Client::createFrame() {
    XMapWindow(g_xscreen->getDisplay(), window);
 }
 
-void Client::refreshFrame(bool current, bool update_fgeom) {
+void Client::updateFrameGeometry() {
    Display *display = g_xscreen->getDisplay();
    int border_width = g_xscreen->getBorderWidth();
 
-   if(update_fgeom){
-      // updateFrameGeometry;
-      fgeom.x = geom.x - border_width;
-      fgeom.y = geom.y - border_width;
-      fgeom.width = geom.width + 2*border_width;
-      fgeom.height = geom.height + 2*border_width;
+   // updateFrameGeometry;
+   fgeom.x = geom.x - border_width;
+   fgeom.y = geom.y - border_width;
+   fgeom.width = geom.width + 2*border_width;
+   fgeom.height = geom.height + 2*border_width;
 
-      XMoveResizeWindow(display, frame, fgeom.x, fgeom.y, fgeom.width, fgeom.height);
-      XMoveResizeWindow(display, window, border_width, border_width, geom.width, geom.height);
+   XMoveResizeWindow(display, frame, fgeom.x, fgeom.y, fgeom.width, fgeom.height);
+   XMoveResizeWindow(display, window, border_width, border_width, geom.width, geom.height);
 
-      // not necessary?
-      //send_config();
-   }
+   // not necessary?
+   send_config();
+}
+
+void Client::refreshFrame(bool current, bool update_fgeom) {
+   Display *display = g_xscreen->getDisplay();
+
+   if(update_fgeom)
+      updateFrameGeometry();
 
    XColor frame_colour = g_xscreen->getBorderColour(UNFOCUSED);
    if(marked)  frame_colour = g_xscreen->getBorderColour(MARKED);

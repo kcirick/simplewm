@@ -168,7 +168,7 @@ void WMCore::key_function(int keyfn, string argument, KeySym key){
          else if(key==XK_Up)        g.y -= moveresize_step;
          else if(key==XK_Down)      g.y += moveresize_step;
          client->setGeometry(g);
-         client->refreshFrame(false, true);
+         client->updateFrameGeometry();
       }
       if(argument=="resize") {
          Geometry g = client->getGeometry();
@@ -177,7 +177,7 @@ void WMCore::key_function(int keyfn, string argument, KeySym key){
          else if(key==XK_Up)        g.height -= moveresize_step;
          else if(key==XK_Down)      g.height += moveresize_step;
          client->setGeometry(g);
-         client->refreshFrame(false, true);
+         client->updateFrameGeometry();
       }
       if(argument=="send_to_tag"){
          g_xscreen->sendClientToTag(client, key-XK_1);
@@ -299,10 +299,10 @@ void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){
       uint value_mask = ev->value_mask;
       if(value_mask&CWX)      geom.x = ev->x;
       if(value_mask&CWY)      geom.y = ev->y;
-      if(value_mask&CWWidth)  geom.width = ev->width + 2*g_config->getBorderWidth();
-      if(value_mask&CWHeight) geom.height = ev->height + 2*g_config->getBorderWidth();
+      if(value_mask&CWWidth)  geom.width = ev->width;
+      if(value_mask&CWHeight) geom.height = ev->height;
       c->setGeometry(geom);
-      c->refreshFrame(false, true);
+      c->updateFrameGeometry();
 	} 
    else{
       XWindowChanges wc;
