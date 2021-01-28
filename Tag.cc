@@ -122,11 +122,21 @@ void Tag::removeClient(Client* client, bool delete_client){
 void Tag::insertClient(Client* client){
    say(DEBUG, "Tag::insertClient()");
 
-   // add clients to client_list
    g_xscreen->setEWMHDesktop(client->getWindow(), tag_id);
 
-   // add frame
+   // add clients to client_list
    client_list.push_back(client);
    if(iCurClient<0) iCurClient=0;
 }
 
+vector<Client*> Tag::getMarkedClients(){
+   say(DEBUG, "Tag::getMarkedClients()");
+
+   vector<Client*> this_list;
+   for(uint i=0; i<client_list.size(); i++){
+      if(client_list.at(i)->isMarked())
+         this_list.push_back(client_list.at(i));
+   }
+   
+   return this_list;
+}

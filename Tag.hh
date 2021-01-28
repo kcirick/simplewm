@@ -29,6 +29,7 @@ class Tag {
             if(client_list.at(i)==client)
                iCurClient = i;
       }
+      vector<Client*> getMarkedClients();
 
       void cycleClient();
 

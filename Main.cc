@@ -41,18 +41,6 @@ void sigchld(int unused) {
    while(0 < waitpid(-1, NULL, WNOHANG));
 }
 
-string trimString(string str) {
-   str.erase(0, str.find_first_not_of(' '));
-   str.erase(str.find_last_not_of(' ')+1);
-   return str;
-}
-
-string getToken(string &str, char delim){
-   string token = str.substr(0, str.find_first_of(delim));
-   str = str.substr(str.find_first_of(delim)+1);
-   return token;
-}
-
 //--- Main function ------------------------------------------------------
 int main(int argc, char **argv) {
    string config_file;

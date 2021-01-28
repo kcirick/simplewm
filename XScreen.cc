@@ -103,8 +103,9 @@ XScreen::XScreen(Display *display, Configuration *config) : g_display(display), 
    resize_curs    = XCreateFontCursor(g_display, XC_plus);
 
    XColor cdummy;
+   string colour_name;
    for(int i=0; i<NBORDERCOL; i++){
-      string colour_name = g_config->getBorderColour(i);
+      colour_name = g_config->getBorderColour(i);
       XAllocNamedColor(g_display, g_colormap, colour_name.c_str(), &border_colour[i], &cdummy);
    }
 
@@ -119,7 +120,7 @@ XScreen::XScreen(Display *display, Configuration *config) : g_display(display), 
    //--- set up screens
    initHeads();
    if(!g_heads.size())
-      g_heads.push_back(Head(0,0,g_screen_geom.width,g_screen_geom.height));
+      g_heads.push_back(Head(0, 0, g_screen_geom.width, g_screen_geom.height));
 
    //--- set up tags
    initTags();
@@ -410,7 +411,6 @@ void XScreen::removeWindow(Window win){
    Client *c = findClient(win);
    if(!c) return;
 
-   say(DEBUG, "---> Client found");
    if(c->isFixed()){
       for(uint itag=0; itag<g_tags.size(); itag++)
          g_tags.at(itag)->removeClient(c, itag==(g_tags.size()-1));
@@ -450,29 +450,97 @@ void XScreen::updateTag(unsigned int itag){
 void XScreen::sendClientToTag(Client* client, unsigned int target_tag){
    Tag* old_tag = g_tags.at(current_tag);
    Tag* new_tag = g_tags.at(target_tag);
+   
+   if(hasMarkedClients()){
+      // Group action on all marked clients
+      for(uint i=0; i<g_tags.size(); i++){
+         vector<Client*> markedClients = g_tags.at(i)->getMarkedClients();
+         for(uint j=0; j<markedClients.size(); j++){
+            g_tags.at(i) -> removeClient(markedClients.at(j), false);
+            XUnmapWindow(g_display, markedClients.at(j)->getFrame());
+            new_tag -> insertClient(markedClients.at(j));
 
-   old_tag -> removeClient(client, false);
-   new_tag -> insertClient(client);
+            markedClients.at(j)->toggleMarked();
+         }
+      }
+   } else {
+      old_tag -> removeClient(client, false);
+      XUnmapWindow(g_display, client->getFrame());
+      new_tag -> insertClient(client);
+   }
 }
 
 void XScreen::fixClient(Client* client){
    say(DEBUG, "XScreen::fixClient()");
-   if(!client) return;
-   
-   bool isFixed = client->isFixed();
-   
-   if(isFixed){
-      for(unsigned int i=0; i<g_tags.size(); i++)
-         if(i!=current_tag) g_tags.at(i)->removeClient(client, false);
+
+   bool isFixed = false;
+
+   if(hasMarkedClients()){
+      // Group action on all marked clients
+      for(uint i=0; i<g_tags.size(); i++){
+         vector<Client*> markedClients = g_tags.at(i)->getMarkedClients();
+         for(uint j=0; j<markedClients.size(); j++){
+            
+            isFixed = markedClients.at(j)->isFixed();      
+
+            for(uint k=0; k<g_tags.size(); k++) {
+               if(isFixed && k!=current_tag) 
+                  g_tags.at(k)->removeClient(markedClients.at(j), false);
+               if(!isFixed && k!=i) 
+                     g_tags.at(k)->insertClient(markedClients.at(j));
+            }
+
+            setEWMHDesktop(markedClients.at(j)->getWindow(), current_tag);
+            markedClients.at(j)->toggleFixed();
+
+            markedClients.at(j)->toggleMarked();
+         }
+      }
    } else {
-      for(unsigned int i=0; i<g_tags.size(); i++)
-         if(i!=current_tag) g_tags.at(i)->insertClient(client);
+      if(!client) return;
+   
+      isFixed = client->isFixed();
+   
+      for(uint i=0; i<g_tags.size(); i++) {
+         if(isFixed && i!=current_tag) 
+            g_tags.at(i)->removeClient(client, false);
+         if(!isFixed && i!=current_tag) 
+            g_tags.at(i)->insertClient(client);
+      }
+
+      // Update EWMH
+      setEWMHDesktop(client->getWindow(), current_tag);
+
+      client->toggleFixed();
    }
+}
 
-   // Update EWMH
-   setEWMHDesktop(client->getWindow(), current_tag);
+void XScreen::iconifyClient(Client* client){
+   say(DEBUG, "XScreen::iconifyClient()");
 
-   client->toggleFixed();
+   if(hasMarkedClients()){
+      // Group action on all marked clients
+      for(uint i=0; i<g_tags.size(); i++){
+         vector<Client*> markedClients = g_tags.at(i)->getMarkedClients();
+         for(uint j=0; j<markedClients.size(); j++) {
+            markedClients.at(j)->setIconified(true);
+            markedClients.at(j)->toggleMarked();
+         }
+      }
+   } else {
+      if(!client) return;
+   
+      client->setIconified(true);
+   }
+}
+
+bool XScreen::hasMarkedClients() {
+   for(uint i=0; i<client_list.size(); i++){
+      // return true if any of the clients are marked
+      if(client_list.at(i)->isMarked())
+         return true;
+   }
+   return false;
 }
 
 void XScreen::setWmState(Window win, ulong state){

@@ -1,3 +1,7 @@
+2021-01-28
+	* XScreen: Add group actions to fixClient() and sendClientToTag(). Create iconifyClient() function
+	* WMCore: Key function for iconify redirects to XScreen::iconifyClient()
+
 2021-01-22
 	* WMCore: Remove rules
 	* Frame: Remove Frame class. Just a part of Client now

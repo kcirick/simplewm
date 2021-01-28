@@ -105,8 +105,8 @@ void Client::refreshFrame(bool current, bool update_fgeom) {
       updateFrameGeometry();
 
    XColor frame_colour = g_xscreen->getBorderColour(UNFOCUSED);
-   if(marked)  frame_colour = g_xscreen->getBorderColour(MARKED);
    if(fixed)   frame_colour = g_xscreen->getBorderColour(FIXED);
+   if(marked)  frame_colour = g_xscreen->getBorderColour(MARKED);
    if(current && !iconified) {
       if(!(marked || fixed)){
          frame_colour = g_xscreen->getBorderColour(FOCUSED);

@@ -120,7 +120,5 @@ enum Layer { BOTTOM, TOP };
 //--- functions in Main.cc -----
 void say(int, string);
 void spawn(string);
-string trimString(string);
-string getToken(string&, char);
 
 #endif

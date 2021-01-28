@@ -159,8 +159,9 @@ void WMCore::key_function(int keyfn, string argument, KeySym key){
       if(argument=="mark")          client->toggleMarked();
       if(argument=="cycle")         tag -> cycleClient();
       if(argument=="fix")           g_xscreen->fixClient(client);
-      if(argument=="iconify")       client -> setIconified(true);
+      if(argument=="iconify")       g_xscreen->iconifyClient(client);
       if(client && argument=="kill") client -> kill(false);
+      if(argument=="send_to_tag")   g_xscreen->sendClientToTag(client, key-XK_1);
       if(argument=="move"){
          Geometry g = client->getGeometry();
               if(key==XK_Left)      g.x -= moveresize_step;
@@ -179,12 +180,7 @@ void WMCore::key_function(int keyfn, string argument, KeySym key){
          client->setGeometry(g);
          client->updateFrameGeometry();
       }
-      if(argument=="send_to_tag"){
-         g_xscreen->sendClientToTag(client, key-XK_1);
-         XUnmapWindow(g_xscreen->getDisplay(), client->getFrame());
 
-         g_xscreen->setEWMHClientList();
-      }
       g_xscreen->updateCurrentTag();
    }
 }

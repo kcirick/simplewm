@@ -102,8 +102,11 @@ class XScreen {
                client_list.erase(client_list.begin()+i);
          }
       }
+      
+      bool hasMarkedClients();
 
       void fixClient(Client*);
+      void iconifyClient(Client*);
 
       void addWindow(Window);
       void removeWindow(Window);

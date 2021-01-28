@@ -22,6 +22,19 @@ Configuration::Configuration(){
 
 Configuration::~Configuration(){ }
 
+// --- Local helper functions --------------------------------------------
+string trimString(string str) {
+   str.erase(0, str.find_first_not_of(' '));
+   str.erase(str.find_last_not_of(' ')+1);
+   return str;
+}
+
+string getToken(string &str, char delim){
+   string token = str.substr(0, str.find_first_of(delim));
+   str = str.substr(str.find_first_of(delim)+1);
+   return token;
+}
+
 //------------------------------------------------------------------------
 void Configuration::loadConfig(string filename){
    say(DEBUG, string("Loading config file "+filename)); 

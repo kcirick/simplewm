@@ -9,7 +9,7 @@ A simple window manager with Xlib written to fit my specific needs, and also to 
   - Features:
     - No frills (menu, titlebar, icons, pixmap themes, autostart etc...)
     - Text config file (default $HOME/.config/simplewm/configrc)
-    - Clients can be fixed (visible on all tags), iconified (i.e. hidden), or marked (no action yet)
+    - Clients can be fixed (visible on all tags), iconified (i.e. hidden), or marked (marked clients can perform group actions)
 
 Usage:
 
@@ -29,6 +29,7 @@ v0.2
     - Remove window groups
     - Remove Frame class (now part of Client class)
     - Remove rules
+    - Add group actions (fix, iconify, and send to tag) on marked clients
   - 0.2 (2019-09-01) (<a href="https://github.com/kcirick/simplewm/archive/v0.2.zip">download .zip</a>)
     - Goal: Code clean up and maximize efficiency
     - Removed root menu to simplify things. There are other external tools that can be used
