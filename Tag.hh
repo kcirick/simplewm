@@ -7,10 +7,10 @@ class Tag {
          g_xscreen(screen), tag_id(id), iCurClient(-1) { };
       ~Tag() { };
 
-      inline Client* findClientWithFrame(Window win) {
+      inline Client* findClient(Window win) {
          Client* client=NULL;
          for(unsigned int i=0; i<client_list.size(); i++)
-            if(client_list.at(i)->getFrame() == win)
+            if(client_list.at(i)->getWindow() == win)
                    return client_list.at(i);
          
          return client;

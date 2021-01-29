@@ -168,8 +168,7 @@ void WMCore::key_function(int keyfn, string argument, KeySym key){
          else if(key==XK_Right)     g.x += moveresize_step;
          else if(key==XK_Up)        g.y -= moveresize_step;
          else if(key==XK_Down)      g.y += moveresize_step;
-         client->setGeometry(g);
-         client->updateFrameGeometry();
+         client->updateGeometry(g);
       }
       if(argument=="resize") {
          Geometry g = client->getGeometry();
@@ -177,8 +176,7 @@ void WMCore::key_function(int keyfn, string argument, KeySym key){
          else if(key==XK_Right)     g.width += moveresize_step;
          else if(key==XK_Up)        g.height -= moveresize_step;
          else if(key==XK_Down)      g.height += moveresize_step;
-         client->setGeometry(g);
-         client->updateFrameGeometry();
+         client->updateGeometry(g);
       }
 
       g_xscreen->updateCurrentTag();
@@ -195,16 +193,16 @@ void WMCore::handleButtonPressEvent(XButtonEvent *ev){
    g_xscreen->stripStateModifiers(&ev->state);
    if((client = (g_xscreen->findClient(ev->window)))){
       say(DEBUG, "CONTEXT_CLIENT");
-      XRaiseWindow(g_xscreen->getDisplay(), client->getFrame());
+      XRaiseWindow(g_xscreen->getDisplay(), client->getWindow());
       tag->setCurrentClient(client);
       for(uint i=0; i<mousemap.size(); i++)
          if(mousemap.at(i)->context==CONTEXT_CLIENT && 
             mousemap.at(i)->mask == ev->state && mousemap.at(i)->button == ev->button)
             mouse_function(client, mousemap.at(i)->argument, CONTEXT_CLIENT);
    }
-   else if((client = tag->findClientWithFrame(ev->window))){
+   else if((client = tag->findClient(ev->window))){
       say(DEBUG, "CONTEXT_FRAME");
-      XRaiseWindow(g_xscreen->getDisplay(), client->getFrame());
+      XRaiseWindow(g_xscreen->getDisplay(), client->getWindow());
       tag->setCurrentClient(client);
       for(uint i=0; i<mousemap.size(); i++)
          if(mousemap.at(i)->context==CONTEXT_FRAME && 
@@ -272,7 +270,7 @@ void WMCore::handleEnterNotify(XCrossingEvent *ev){
    say(DEBUG, "handleEnterNotify()");
    
    Tag* tag = g_xscreen->getCurrentTag();
-   Client* client = tag->findClientWithFrame(ev->window);
+   Client* client = tag->findClient(ev->window);
    if(client && g_xscreen->isSloppyFocus()){
       // no action if frame is already focused
       if(client == tag->getCurrentClient()) return;
@@ -297,8 +295,7 @@ void WMCore::handleConfigureRequestEvent(XConfigureRequestEvent *ev){
       if(value_mask&CWY)      geom.y = ev->y;
       if(value_mask&CWWidth)  geom.width = ev->width;
       if(value_mask&CWHeight) geom.height = ev->height;
-      c->setGeometry(geom);
-      c->updateFrameGeometry();
+      c->updateGeometry(geom);
 	} 
    else{
       XWindowChanges wc;

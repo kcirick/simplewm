@@ -457,7 +457,7 @@ void XScreen::sendClientToTag(Client* client, unsigned int target_tag){
          vector<Client*> markedClients = g_tags.at(i)->getMarkedClients();
          for(uint j=0; j<markedClients.size(); j++){
             g_tags.at(i) -> removeClient(markedClients.at(j), false);
-            XUnmapWindow(g_display, markedClients.at(j)->getFrame());
+            XUnmapWindow(g_display, markedClients.at(j)->getWindow());
             new_tag -> insertClient(markedClients.at(j));
 
             markedClients.at(j)->toggleMarked();
@@ -465,7 +465,7 @@ void XScreen::sendClientToTag(Client* client, unsigned int target_tag){
       }
    } else {
       old_tag -> removeClient(client, false);
-      XUnmapWindow(g_display, client->getFrame());
+      XUnmapWindow(g_display, client->getWindow());
       new_tag -> insertClient(client);
    }
 }

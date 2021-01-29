@@ -42,9 +42,9 @@ v0.2
   - BUG: Random crashes, sources unknown
   - Code clean up
   - Implement Maximized/Fullscreen EMWH request
-  - Implement group action on marked clients
-  - ~~Implement EWMH properties~~ (v0.2)
+  - ~~Implement group action on marked clients~~ (v0.3)
   - ~~Implement rules~~ (removed v0.3)
+  - ~~Implement EWMH properties~~ (v0.2)
   - ~~Implement window grouping~~ (v0.1)
   - ~~Implement fixed state for frames~~ (v0.1)
   - ~~Implement iconic state for frames~~ (v0.1)

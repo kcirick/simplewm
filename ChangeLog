@@ -1,3 +1,7 @@
+2021-01-29
+	* Client: Remove frame as new window. It's a border and doesn't interfere with xprop
+	* 
+
 2021-01-28
 	* XScreen: Add group actions to fixClient() and sendClientToTag(). Create iconifyClient() function
 	* WMCore: Key function for iconify redirects to XScreen::iconifyClient()

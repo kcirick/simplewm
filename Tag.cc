@@ -28,28 +28,36 @@ void Tag::updateTag(){
    if(client_list.size()==0) return;
 
    say(DEBUG, "===> updateTag: nclients = "+to_string(client_list.size())+" - current = "+to_string(iCurClient));
-   for(unsigned int i=0; i<client_list.size(); i++)
+   for(unsigned int i=0; i<client_list.size(); i++) {
+      Window this_win = client_list.at(i)->getWindow();
       if(client_list.at(i)->isIconified())
-         XUnmapWindow(g_xscreen->getDisplay(), client_list.at(i)->getFrame());
+         XUnmapWindow(g_xscreen->getDisplay(), this_win);
       else {
-         XMapWindow(g_xscreen->getDisplay(), client_list.at(i)->getFrame());
-         client_list.at(i) -> refreshFrame((int)i==iCurClient, false);
+         XMapWindow(g_xscreen->getDisplay(), this_win);
+         client_list.at(i) -> updateBorderColour((int)i==iCurClient);
+         if((int)i==iCurClient){
+            //XRaiseWindow(g_xscreen->getDisplay(), this_win);
+            g_xscreen->setInputFocus(this_win);
+
+            g_xscreen -> setEWMHActiveWindow(this_win);
+         }
       }
+   }
 }
 
 void Tag::showTag(){
    for(unsigned int i=0; i<client_list.size(); i++){
       if(client_list.at(i)->isIconified())
-         XUnmapWindow(g_xscreen->getDisplay(), client_list.at(i)->getFrame());
+         XUnmapWindow(g_xscreen->getDisplay(), client_list.at(i)->getWindow());
       else 
-         XMapWindow(g_xscreen->getDisplay(), client_list.at(i)->getFrame());
+         XMapWindow(g_xscreen->getDisplay(), client_list.at(i)->getWindow());
    }
 }
 
 void Tag::hideTag(){
    for(unsigned int i=0; i<client_list.size(); i++)
       if(!client_list.at(i)->isFixed())
-         XUnmapWindow(g_xscreen->getDisplay(), client_list.at(i)->getFrame());
+         XUnmapWindow(g_xscreen->getDisplay(), client_list.at(i)->getWindow());
 }
 
 void Tag::cycleClient(){
@@ -65,11 +73,16 @@ void Tag::cycleClient(){
    XGrabKeyboard(g_xscreen->getDisplay(), g_xscreen->getRoot(), True, GrabModeAsync, GrabModeAsync, CurrentTime);
 
 	XEvent ev;
+   int border_width = g_xscreen->getBorderWidth();
 	for (;;) {
-      g_xscreen->drawOutline(current->getFrameGeometry());
+      Geometry outline_geom = current->getGeometry();
+      outline_geom.width += 2*border_width;
+      outline_geom.height += 2*border_width;
+
+      g_xscreen->drawOutline(outline_geom);
 		XMaskEvent(g_xscreen->getDisplay(), KeyPressMask|KeyReleaseMask, &ev);
       KeySym keysym = XkbKeycodeToKeysym(g_xscreen->getDisplay(), ev.xkey.keycode, 0, 0);
-      g_xscreen->drawOutline(current->getFrameGeometry());
+      g_xscreen->drawOutline(outline_geom);
 
 		switch (ev.type) {
 			case KeyPress:
@@ -82,9 +95,9 @@ void Tag::cycleClient(){
                Client* vc = client_list.at(iCurClient);
                if(current->isIconified()){
                   current->setIconified(false);
-                  XMapWindow(g_xscreen->getDisplay(), current->getFrame());
+                  XMapWindow(g_xscreen->getDisplay(), current->getWindow());
                }
-               XRaiseWindow(g_xscreen->getDisplay(), vc->getFrame());
+               XRaiseWindow(g_xscreen->getDisplay(), vc->getWindow());
                XUngrabKeyboard(g_xscreen->getDisplay(), CurrentTime);               
 
                g_xscreen -> setEWMHActiveWindow(vc->getWindow());
@@ -110,7 +123,6 @@ void Tag::removeClient(Client* client, bool delete_client){
    if(!found) return;
 
    if(delete_client){
-      client->destroy_frame();
       g_xscreen->removeClient(client);
       delete client;
    }

@@ -14,15 +14,16 @@ Client::Client(XScreen* screen, Window win) : g_xscreen(screen), window(win) {
 
    initGeometry();
    
-   createFrame();
-
-   //XXX
    XSelectInput(g_xscreen->getDisplay(), window, EnterWindowMask|FocusChangeMask|PropertyChangeMask|StructureNotifyMask);
    
    g_xscreen->grabButtons(window, CONTEXT_CLIENT);
 
    g_xscreen->initEWMHClient(window);
    g_xscreen->setEWMHDesktop(window, g_xscreen->getCurrentTagIndex());
+
+   // map window
+   XMoveResizeWindow(g_xscreen->getDisplay(), window, geom.x, geom.y, geom.width, geom.height);
+   XMapWindow(g_xscreen->getDisplay(), window);
 }
 
 Client::~Client(){ }
@@ -50,59 +51,27 @@ void Client::initGeometry(){
    if(spill_y > 0) geom.y -= spill_y+border_width;
    if(geom.x < 0) geom.x = border_width;
    if(geom.y < 0) geom.y = border_width;
-}
 
-void Client::createFrame() {
-   say(DEBUG, "Client::createFrame()");
-
-   int border_width = g_xscreen->getBorderWidth();
+   // create border
    unsigned int frame_pixel = (g_xscreen->getBorderColour(UNFOCUSED)).pixel;
 
-   XSetWindowAttributes attr;
-   attr.background_pixel  = frame_pixel;
-   attr.border_pixel      = frame_pixel;
-   attr.event_mask        = SubstructureRedirectMask|SubstructureNotifyMask|
-            ButtonPressMask|ButtonMotionMask|EnterWindowMask;
-   attr.override_redirect = True;
-
-   fgeom.x = geom.x - border_width;
-   fgeom.y = geom.y - border_width;
-   fgeom.width =  geom.width + 2*border_width;
-   fgeom.height = geom.height + 2*border_width;
-
-   // Frame
-   frame = XCreateWindow(g_xscreen->getDisplay(), g_xscreen->getRoot(), 
-      fgeom.x, fgeom.y, fgeom.width, fgeom.height, 0, 
-      g_xscreen->getDepth(), InputOutput, g_xscreen->getVisual(), 
-      CWOverrideRedirect|CWBorderPixel|CWBackPixel|CWEventMask, &attr);
-   XMapWindow(g_xscreen->getDisplay(), frame);
-
-   XReparentWindow(g_xscreen->getDisplay(), window, frame, border_width,  border_width);
-   XMapWindow(g_xscreen->getDisplay(), window);
+   XWindowChanges wc;
+   wc.border_width = border_width;
+   XConfigureWindow(g_xscreen->getDisplay(), window, CWBorderWidth, &wc);
+   XSetWindowBorder(g_xscreen->getDisplay(), window, frame_pixel);
 }
 
-void Client::updateFrameGeometry() {
-   Display *display = g_xscreen->getDisplay();
-   int border_width = g_xscreen->getBorderWidth();
-
-   // updateFrameGeometry;
-   fgeom.x = geom.x - border_width;
-   fgeom.y = geom.y - border_width;
-   fgeom.width = geom.width + 2*border_width;
-   fgeom.height = geom.height + 2*border_width;
-
-   XMoveResizeWindow(display, frame, fgeom.x, fgeom.y, fgeom.width, fgeom.height);
-   XMoveResizeWindow(display, window, border_width, border_width, geom.width, geom.height);
+void Client::updateGeometry(Geometry this_geom) { 
+   geom = this_geom; 
+         
+   XMoveResizeWindow(g_xscreen->getDisplay(), window, geom.x, geom.y, geom.width, geom.height);
 
    // not necessary?
    send_config();
 }
 
-void Client::refreshFrame(bool current, bool update_fgeom) {
+void Client::updateBorderColour(bool current) {
    Display *display = g_xscreen->getDisplay();
-
-   if(update_fgeom)
-      updateFrameGeometry();
 
    XColor frame_colour = g_xscreen->getBorderColour(UNFOCUSED);
    if(fixed)   frame_colour = g_xscreen->getBorderColour(FIXED);
@@ -111,15 +80,8 @@ void Client::refreshFrame(bool current, bool update_fgeom) {
       if(!(marked || fixed)){
          frame_colour = g_xscreen->getBorderColour(FOCUSED);
       }
-
-      XRaiseWindow(display, window);
-      g_xscreen->setInputFocus(window);
-
-      g_xscreen -> setEWMHActiveWindow(window);
    } 
-   XSetWindowBackground(display, frame, frame_colour.pixel);
-
-   XClearWindow(display, frame);
+   XSetWindowBorder(display, window, frame_colour.pixel);
 }
 
 void Client::send_config() {
@@ -179,8 +141,6 @@ void Client::dragMove() {
 	int old_cx = geom.x;
 	int old_cy = geom.y;
 
-   refreshFrame(true, false);
-   
    Window dw;
 	int x, y, di;
    uint dui;
@@ -194,11 +154,11 @@ void Client::dragMove() {
 				geom.x = old_cx + (ev.xmotion.x - x) + 2;
 				geom.y = old_cy + (ev.xmotion.y - y) + 2;
 
-            XMoveWindow(display, frame, geom.x, geom.y);
+            XMoveWindow(display, window, geom.x, geom.y);
 				break;
 			case ButtonRelease:
             XUngrabPointer(display, CurrentTime);
-            refreshFrame(true, true);
+            updateGeometry(geom);
 				return;
 			default: break;
 		}
@@ -210,42 +170,33 @@ void Client::dragResize() {
 
    Display* display = g_xscreen->getDisplay();
    Window root_win = g_xscreen->getRoot();
-   int border_width = g_xscreen->getBorderWidth();
 
    if(XGrabPointer(display, root_win, False, ButtonPressMask|ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, 
             None, g_xscreen->resize_curs, CurrentTime)!=GrabSuccess) 
       return;
 
 	XEvent ev;
-	int old_cx = fgeom.x;
-	int old_cy = fgeom.y;
+	int old_cx = geom.x;
+	int old_cy = geom.y;
 
-   refreshFrame(true, false);
-
-	XWarpPointer(display, None, frame, 0, 0, 0, 0, geom.width, geom.height);
+	XWarpPointer(display, None, window, 0, 0, 0, 0, geom.width, geom.height);
 	for (;;) {
-      g_xscreen->drawOutline(fgeom); /* clear */
+      g_xscreen->drawOutline(geom); /* clear */
 		XMaskEvent(display, ButtonReleaseMask|PointerMotionMask, &ev);
-      g_xscreen->drawOutline(fgeom); 
+      g_xscreen->drawOutline(geom); 
 		switch (ev.type) {
 			case MotionNotify:
 				if (ev.xmotion.root != root_win)
 					break;
-	         fgeom.width  = ev.xmotion.x - old_cx;
-	         fgeom.height = ev.xmotion.y - old_cy;
+	         geom.width  = ev.xmotion.x - old_cx;
+	         geom.height = ev.xmotion.y - old_cy;
 				break;
 			case ButtonRelease:
 				XUngrabPointer(display, CurrentTime);
-            geom.width  = fgeom.width - 2*border_width;
-            geom.height = fgeom.height - 2*border_width;
-            refreshFrame(true, true);
+            updateGeometry(geom);
 				return;
 			default: break;
 		}
 	}
 }
 
-void Client::destroy_frame() {
-   XUnmapWindow(g_xscreen->getDisplay(), frame);
-   XDestroyWindow(g_xscreen->getDisplay(), frame);
-}
