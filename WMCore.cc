@@ -200,15 +200,6 @@ void WMCore::handleButtonPressEvent(XButtonEvent *ev){
             mousemap.at(i)->mask == ev->state && mousemap.at(i)->button == ev->button)
             mouse_function(client, mousemap.at(i)->argument, CONTEXT_CLIENT);
    }
-   else if((client = tag->findClient(ev->window))){
-      say(DEBUG, "CONTEXT_FRAME");
-      XRaiseWindow(g_xscreen->getDisplay(), client->getWindow());
-      tag->setCurrentClient(client);
-      for(uint i=0; i<mousemap.size(); i++)
-         if(mousemap.at(i)->context==CONTEXT_FRAME && 
-            mousemap.at(i)->mask == ev->state && mousemap.at(i)->button == ev->button)
-            mouse_function(client, mousemap.at(i)->argument, CONTEXT_FRAME);
-   }
    else {
       say(DEBUG, "CONTEXT_ROOT");
       for(uint i=0; i<mousemap.size(); i++)
@@ -223,7 +214,7 @@ void WMCore::mouse_function(Client* client, string argument, int context){
    if(context==CONTEXT_ROOT){
       if(argument=="test") test();
    }
-   if(context==CONTEXT_CLIENT || context==CONTEXT_FRAME){
+   if(context==CONTEXT_CLIENT){
       if(!client) return;
       if(argument=="move") client->dragMove();
       if(argument=="resize") client->dragResize();

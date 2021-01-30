@@ -122,7 +122,6 @@ void Configuration::loadConfig(string filename){
 
             int this_context = -1;
                  if(context == "ROOT")    this_context = CONTEXT_ROOT;
-            else if(context == "FRAME")   this_context = CONTEXT_FRAME;
             else if(context == "CLIENT")  this_context = CONTEXT_CLIENT;
             
             mouse_bindings.push_back(new MouseMap(mod, button, this_context, string(args)));

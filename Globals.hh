@@ -111,7 +111,7 @@ enum AtomName {
 
 enum KeyFunctions { SPAWN, QUIT, TAG, CLIENT, NFUNC };
 
-enum MouseContext { CONTEXT_ROOT, CONTEXT_CLIENT, CONTEXT_FRAME, NCONTEXT };
+enum MouseContext { CONTEXT_ROOT, CONTEXT_CLIENT, NCONTEXT };
 
 enum BorderColours { FOCUSED, UNFOCUSED, URGENT, MARKED, FIXED, NBORDERCOL };
 
